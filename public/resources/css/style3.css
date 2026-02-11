@@ -1,0 +1,318 @@
+/* ===========================
+   RESET & BASE
+=========================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f5f7;
+    color: #222;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+
+/* ===========================
+   HEADER
+=========================== */
+
+.site-header {
+    background-color: #111;
+    color: #fff;
+    padding: 1rem 0;
+}
+
+.header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.main-nav ul {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.main-nav a {
+    color: #ddd;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.main-nav a:hover {
+    color: #ff3c00;
+}
+
+.basket-link {
+    background-color: #ff3c00;
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.basket-link:hover {
+    background-color: #cc2f00;
+}
+
+
+/* ===========================
+   BREADCRUMB
+=========================== */
+
+.breadcrumb {
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.breadcrumb ul {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.breadcrumb li::after {
+    content: ">";
+    margin-left: 0.5rem;
+    color: #aaa;
+}
+
+.breadcrumb li:last-child::after {
+    content: "";
+}
+
+.breadcrumb a {
+    color: #444;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+
+/* ===========================
+   PRODUCT LAYOUT
+=========================== */
+
+.product-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ===========================
+   GALLERY
+=========================== */
+
+.product-gallery .main-image {
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.thumbnails {
+    display: flex;
+    gap: 1rem;
+}
+
+.thumbnails img {
+    width: 80px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.3s ease, transform 0.2s ease;
+}
+
+.thumbnails img:hover {
+    border-color: #ff3c00;
+    transform: scale(1.05);
+}
+
+
+/* ===========================
+   PRODUCT INFO
+=========================== */
+
+.product-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.short-description {
+    margin-bottom: 1.5rem;
+    color: #555;
+}
+
+.price-block {
+    margin-bottom: 1rem;
+}
+
+.price-ht,
+.price-tva {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.price-tva strong {
+    color: #ff3c00;
+    font-size: 1.3rem;
+}
+
+.stock {
+    margin: 1rem 0;
+    font-weight: 600;
+}
+
+.in-stock {
+    color: #1a7f37;
+}
+
+
+/* ===========================
+   FORM
+=========================== */
+
+.add-to-basket {
+    margin-top: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+}
+
+select {
+    width: 100%;
+    max-width: 120px;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+select:focus {
+    outline: none;
+    border-color: #ff3c00;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 0.7rem 1.5rem;
+    background-color: #ff3c00;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+    background-color: #cc2f00;
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+
+/* ===========================
+   PRODUCT DESCRIPTION
+=========================== */
+
+.product-description {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 3rem;
+}
+
+.product-description h3 {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.product-description p {
+    margin-bottom: 1rem;
+    color: #444;
+}
+
+
+/* ===========================
+   FOOTER
+=========================== */
+
+.site-footer {
+    background-color: #111;
+    color: #bbb;
+    padding: 1.5rem 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 900px) {
+    .product-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .header-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .main-nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
