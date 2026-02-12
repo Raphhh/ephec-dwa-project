@@ -1,0 +1,53 @@
+
+/* ===========================
+   BASKET TABLE
+=========================== */
+
+.basket {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+}
+
+.basket-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-bg-surface);
+    box-shadow: var(--shadow-default);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+}
+
+.basket-table th,
+.basket-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+}
+
+.basket-table tfoot th,
+.basket-table tfoot td {
+    padding: 0.5rem 1rem;
+    border-bottom: none;
+    text-align: left;
+}
+
+.basket-table tfoot th {
+    text-align: right;
+    font-weight: 600;
+}
+
+.basket-table tfoot td {
+    font-weight: 600;
+}
+
+.basket-img {
+    width: 60px;
+    vertical-align: middle;
+    margin-right: 1rem;
+    border-radius: var(--radius-small);
+}
+
+.basket-actions {
+    margin-top: 2rem;
+    text-align: right;
+}

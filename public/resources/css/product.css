@@ -6,8 +6,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
-    margin-top: 2rem;
-    margin-bottom: 3rem;
     background-color: var(--color-bg-surface);
     padding: 2rem;
     border-radius: var(--radius-medium);
@@ -18,6 +16,11 @@
 /* ===========================
    GALLERY
 =========================== */
+
+img {
+    max-width: 100%;
+    display: block;
+}
 
 .product-gallery .main-image {
     border-radius: var(--radius-medium);

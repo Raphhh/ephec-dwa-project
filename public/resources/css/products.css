@@ -3,16 +3,6 @@
    PRODUCTS LIST
 =========================== */
 
-.products-list {
-    margin-top: 2rem;
-    margin-bottom: 3rem;
-}
-
-.products-list h1 {
-    margin-bottom: 0;
-    font-size: 1.8rem;
-}
-
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -32,6 +22,8 @@
 .product-card img {
     border-radius: var(--radius-small);
     margin-bottom: 1rem;
+    max-width: 100%;
+    display: block;
 }
 
 .product-card h2 {
@@ -50,20 +42,10 @@
     margin-bottom: 1rem;
 }
 
+
 /* ===========================
    PRODUCTS TOOLBAR
 =========================== */
-
-.products-toolbar {
-    background-color: var(--color-bg-surface);
-    padding: 0.8rem 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: var(--radius-small);
-    box-shadow: var(--shadow-default);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
 
 .toolbar-form {
     display: flex;

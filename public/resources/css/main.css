@@ -60,11 +60,6 @@ body {
     color: var(--color-text-main);
 }
 
-img {
-    max-width: 100%;
-    display: block;
-}
-
 a {
     text-decoration: none;
     color: inherit;
@@ -78,6 +73,11 @@ ul {
     width: var(--container-padding);
     max-width: var(--container-width);
     margin: 0 auto;
+}
+
+main.container {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
 }
 
 
@@ -122,6 +122,26 @@ ul {
 }
 
 
+/* ===========================
+   TOOLBAR
+=========================== */
+
+.toolbar {
+    background-color: var(--color-bg-surface);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-small);
+    box-shadow: var(--shadow-default);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.toolbar h1 {
+    margin-bottom: 0;
+    font-size: 1.8rem;
+}
+
 
 /* ===========================
    FORM
@@ -149,7 +169,6 @@ ul {
 .btn-primary:active {
     transform: scale(0.97);
 }
-
 
 
 /* ===========================
