@@ -62,10 +62,12 @@
     box-shadow: var(--shadow-default);
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .toolbar-form {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 1rem;
 }
@@ -114,9 +116,9 @@
 }
 
 .dropdown-toggle::after {
-    content: '▼';
+    content: '˅';
     position: relative;
-    left: 50px;
+    left: 55px;
 }
 
 .dropdown-menu {
