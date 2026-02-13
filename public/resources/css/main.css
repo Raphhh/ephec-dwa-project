@@ -84,6 +84,7 @@ ul {
 main.container {
     margin-top: 2rem;
     margin-bottom: 3rem;
+    min-height: 350px;
 }
 
 

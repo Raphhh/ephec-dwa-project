@@ -10,6 +10,7 @@
     padding: 2rem;
     border-radius: var(--radius-medium);
     box-shadow: var(--shadow-default);
+    margin-bottom: 1.5rem;
 }
 
 
