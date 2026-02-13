@@ -7,6 +7,12 @@
     --color-primary: #c00000;
     --color-primary-dark: #c00000;
 
+    --color-secondary: #444;
+    --color-secondary-dark: #222;
+
+    --color-neutral: #f4f5f7;
+    --color-neutral-dark: #f4f5f7;
+
     --color-bg-page: #f4f5f7;
     --color-bg-surface: #ffffff;
     --color-bg-dark: #111111;
@@ -149,6 +155,7 @@ main.container {
 
 .btn-primary {
     display: inline-block;
+    line-height: normal;
     padding: 0.7rem 1.5rem;
     background-color: var(--color-primary);
     border: none;
@@ -170,6 +177,36 @@ main.container {
     transform: scale(0.97);
 }
 
+.btn-neutral {
+    display: inline-block;
+    line-height: normal;
+    padding: 0.7rem 1.5rem;
+    background-color: var(--color-neutral);
+    border: none;
+    border-radius: var(--radius-small);
+    /*color: #fff;*/
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color var(--transition-normal),
+                transform 0.1s ease;
+}
+
+.btn-neutral:hover {
+    background-color: var(--color-neutral-dark);
+}
+
+.btn-neutral:active {
+    transform: scale(0.97);
+}
+
+
+.btn-list .btn-primary,  
+.btn-list .btn-neutral{
+    
+    margin: 0 0.5rem;
+}
 
 /* ===========================
    FOOTER
