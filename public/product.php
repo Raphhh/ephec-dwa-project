@@ -12,7 +12,7 @@
 
 <header class="site-header">
     <div class="container header-flex">
-        <p class="logo"><a href="/">Rock Station</a></p>
+        <p class="logo"><a href="products.html">Rock Station</a></p>
         <!-- <nav class="main-nav">
             <a href="#">Guitares</a>
             <a href="#">Amplis</a>     
