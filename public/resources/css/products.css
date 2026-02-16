@@ -1,0 +1,44 @@
+
+/* ===========================
+   PRODUCTS LIST
+=========================== */
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+}
+
+.product-card {
+    background-color: var(--color-bg-surface);
+    padding: 1.5rem;
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-default);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card img {
+    border-radius: var(--radius-small);
+    margin-bottom: 1rem;
+    max-width: 100%;
+    display: block;
+}
+
+.product-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-card-description {
+    font-size: 0.9rem;
+    color: var(--color-text-soft);
+    margin-bottom: 1rem;
+}
+
+.product-card-price {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
