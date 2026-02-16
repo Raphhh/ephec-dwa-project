@@ -9,7 +9,10 @@ function retrieveDisplayableProduct(): array
 
     $pdo = getDatabaseConnection();
     $product = retrieveProductById($pdo, $id);
-    return formatDisplayableProduct($product);
+    if ($product) {
+        $product = formatDisplayableProduct($product);
+    }
+    return $product;
 }
 
 function retrieveBuyableDisplayableProducts(): array 

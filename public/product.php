@@ -4,12 +4,18 @@ require_once __DIR__ . '/../src/controller.php';
 
 $product = retrieveDisplayableProduct();
 
-
-$title = $product['name'] . ' - Rock Station';
-$description = $product['short_description'];
+if ($product) {
+    $title = $product['name'] . ' - Rock Station';
+    $description = $product['short_description'];
+} else {
+    $title = 'Produit introuvable  - Rock Station';
+    $description = '';
+}
 $specificCssFilePath = 'resources/css/product.css';
 include __DIR__ . ' /../templates/header.php';
 ?>
+
+<?php if ($product) { ?>
 
     <article class="product">
 
@@ -65,6 +71,14 @@ include __DIR__ . ' /../templates/header.php';
         </section>
 
     </article>
+
+<?php } else { ?>
+    <section class="toolbar">
+
+        <h1>Produit introuvable</h1>
+
+    </section>
+<?php } ?>
 
 <?php
 include __DIR__ . ' /../templates/footer.php';
