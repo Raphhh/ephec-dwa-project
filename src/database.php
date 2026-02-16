@@ -16,3 +16,15 @@ function retrieveProductById(PDO $pdo, $id): array
     $stmt->execute(['id' => $id]);
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
+
+function retrieveBuyableProducts(PDO $pdo): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM products WHERE is_available = 1 ORDER BY display_priority');
+    $stmt->execute();
+
+    $products = [];
+    while($product = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $products[] = $product;
+    }
+    return $products;
+}
