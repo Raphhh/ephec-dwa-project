@@ -14,9 +14,18 @@ function retrieveDisplayableProduct(): array
     $pdo = getDatabaseConnection();
     $product = retrieveProductById($pdo, $id);
     if ($product) {
-        $product['price_tvac'] = formatPrice(addTva($product['price_htva']));
-        $product['price_htva'] = formatPrice($product['price_htva']);
-        $product['image_url'] = formatProductImageUrl($product['img_file_path']);
+        return formatDisplayableProduct($product);
     }
     return $product;
+}
+
+function retrieveBuyableDisplayableProducts(): array
+{
+    $pdo = getDatabaseConnection();
+    $products = retrieveBuyableProducts($pdo);
+
+    foreach ($products as $index => $product) {
+        $products[$index] = formatDisplayableProduct($product);
+    }
+    return $products;
 }
