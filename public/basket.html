@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Panier - Rock Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Résumé de votre commande chez Rock Station.">
+    <link rel="stylesheet" href="resources/css/main.css">
+    <link rel="stylesheet" href="resources/css/basket.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="container header-flex">
+        <p class="logo"><a href="/">Rock Station</a></p>
+        <!-- <nav class="main-nav">
+            <a href="products.html">Guitares</a>
+            <a href="#">Amplis</a>
+        </nav> -->
+        <nav class="user-nav">
+            <a href="basket.html" class="basket-link" title="Voir le panier">🛒</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="toolbar">
+        <h1>Votre panier</h1>
+    </section>
+
+    <section class="basket">
+
+        <table class="basket-table">
+
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Prix unitaire HTVA</th>
+                    <th>Quantité</th>
+                    <th>Total HTVA</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>
+                        <img src="resources/products/gibson-les-paul-standard-60s-honey-amber_1_GIT0062796-002.webp"
+                                alt="Gibson Les Paul Standard 60s"
+                                class="basket-img">
+                        Gibson Les Paul Standard 60s
+                    </td>
+                    <td>2 000 €</td>
+                    <td>1</td>
+                    <td>2 000 €</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <img src="resources/products/fender-american-ultra-ii-stratocaster-eb-texas-tea_1_GIT0061889-003.webp"
+                                alt="Fender Stratocaster"
+                                class="basket-img">
+                        Fender Stratocaster
+                    </td>
+                    <td>1 487 €</td>
+                    <td>2</td>
+                    <td>2 974 €</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <img src="resources/products/fender-65-twin-reverb-combo-_1_GIT0000081-000.webp"
+                                alt="Fender Twin Reverb"
+                                class="basket-img">
+                        Fender Twin Reverb
+                    </td>
+                    <td>1 941 €</td>
+                    <td>1</td>
+                    <td>1 941 €</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <img src="resources/products/vox-ac30-c2-combo-_1_GIT0018374-000.webp"
+                                alt="Vox AC30"
+                                class="basket-img">
+                        Vox AC30
+                    </td>
+                    <td>1 115 €</td>
+                    <td>1</td>
+                    <td>1 115 €</td>
+                </tr>
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+                    <th colspan="3">Nombre total d’articles</th>
+                    <td>5</td>
+                </tr>
+
+                <tr>
+                    <th colspan="3">Total HTVA</th>
+                    <td>8 030 €</td>
+                </tr>
+
+                <tr>
+                    <th colspan="3">Total TVAC (21%)</th>
+                    <td>9 716,30 €</td>
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+        <form action="#" method="post">
+            <div class="basket-actions">
+                <button type="submit" class="btn-primary">
+                    Passer commande
+                </button>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <p>&copy; 2026 RockStation - Tous droits réservés</p>
+    </div>
+</footer>
+
+</body>
+</html>

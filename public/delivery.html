@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Adresse de livraison - Rock Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Adresse de livraison pour votre commande Rock Station.">
+    <link rel="stylesheet" href="resources/css/main.css">
+    <link rel="stylesheet" href="resources/css/delivery.css">
+</head>
+
+<body>
+
+<header class="site-header">
+    <div class="container header-flex">
+        <p class="logo"><a href="/">Rock Station</a></p>
+        <nav class="user-nav">
+            <a href="basket.html" class="basket-link" title="Voir le panier">🛒</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="toolbar">
+        <h1>Informations de livraison</h1>
+    </section>
+
+    <section class="delivery-form-section">
+
+        <form action="#" method="post" class="delivery-form">
+
+            <section class="delivery-form-col">
+
+                <fieldset>
+                    <legend>Commanditaire</legend>
+
+                    <div class="form-group">
+                        <label for="email">Email de contact</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastname">Nom</label>
+                        <input type="text" id="lastname" name="lastname" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firstname">Prénom</label>
+                        <input type="text" id="firstname" name="firstname" required>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Adresse de livraison</legend>
+
+                    <div class="form-group">
+                        <label for="street">Rue</label>
+                        <input type="text" id="street" name="street" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="postal">Code postal</label>
+                        <input type="text" id="postal" name="postal" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Ville</label>
+                        <input type="text" id="city" name="city" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Pays</label>
+                        <input type="text" id="country" name="country" required>
+                    </div>
+                </fieldset>
+
+            </section>
+
+            <div class="delivery-actions btn-list">
+                <a href="basket.html" class="btn-neutral">
+                    Retour au panier
+                </a>
+                <button type="submit" class="btn-primary">
+                    Confirmer la commande
+                </button>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <p>&copy; 2026 RockStation - Tous droits réservés</p>
+    </div>
+</footer>
+
+</body>
+</html>
