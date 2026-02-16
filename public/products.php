@@ -14,6 +14,54 @@ include __DIR__ . ' /../templates/header.php';
     <section class="toolbar">
 
         <h1>Guitares et amplis</h1>
+
+        <form action="#" method="get" class="toolbar-form">
+    
+            <!-- Dropdown Catégories (multi-checkbox) -->
+            <div class="dropdown">
+    
+                <button type="button" class="dropdown-toggle">
+                    Catégories
+                </button>
+    
+                <div class="dropdown-menu">
+    
+                    <label class="dropdown-item">
+                        <input type="checkbox" name="categories[]" value="guitares">
+                        Guitares
+                    </label>
+    
+                    <label class="dropdown-item">
+                        <input type="checkbox" name="categories[]" value="amplis">
+                        Amplis
+                    </label>
+    
+                    <label class="dropdown-item">
+                        <input type="checkbox" name="categories[]" value="accessoires">
+                        Accessoires
+                    </label>
+    
+                </div>
+            </div>
+    
+    
+            <!-- Dropdown Ordre de prix -->
+            <div class="toolbar-select">
+                <label for="order" class="visually-hidden">Ordre de prix</label>
+                <select name="order" id="order">
+                    <option value="default">Popularité</option>
+                    <option value="price_asc">Prix croissant</option>
+                    <option value="price_desc">Prix décroissant</option>
+                </select>
+            </div>
+    
+    
+            <!-- Bouton neutre -->
+            <button type="submit" class="btn-secondary">
+                Appliquer
+            </button>
+    
+        </form>
     
     </section>
     
