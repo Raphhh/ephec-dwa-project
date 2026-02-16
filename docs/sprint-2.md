@@ -167,9 +167,7 @@ Code dans `src/controller.php` :
 
 ```php
 if ($product) {
-    $product['price_tvac'] = formatPrice(addTva($product['price_htva']));
-    $product['price_htva'] = formatPrice($product['price_htva']);
-    $product['image_url'] = formatProductImageUrl($product['img_file_path']);
+    return formatDisplayableProduct($product);
 }
 return $product;
 ```
@@ -196,6 +194,22 @@ function formatProductImageUrl($imagePath): string
 {
     return 'resources/products/' . $imagePath;
 }
+
+function formatProductUrl($id): string
+{
+    return 'product.php?id=' . $id;
+}
+
+function formatDisplayableProduct(array $product): array
+{
+    $product['price_tvac'] = formatPrice(addTva($product['price_htva']));
+    $product['price_htva'] = formatPrice($product['price_htva']);
+    $product['image_url'] = formatProductImageUrl($product['img_file_path']);
+    unset($product['img_file_path']);
+    $product['url'] = formatProductUrl($product['id']);
+
+    return $product;
+}
 ```
 
 Code dans `config.php` :
@@ -207,7 +221,7 @@ define ('TVA', 0.21);
 ##### Objectif
 
 Les données brutes venant de la base ne sont pas toujours prêtes à être affichées directement.
-Le contrôleur applique donc quelques transformations :
+Le contrôleur applique donc quelques transformations, notamment :
 - calcul du prix TVAC à partir du prix HTVA ;
 - formatage des prix pour l'affichage ;
 - construction du chemin de l'image produit.
@@ -320,3 +334,104 @@ Cela permet à l'utilisateur de voir immédiatement la situation du produit affi
 - La logique est séparée entre vue, contrôleur, accès base de données et fonctions utilitaires.
 - Le formatage des données est centralisé et réutilisable.
 - L'utilisateur reçoit un message clair si le produit n'est pas trouvé.
+
+
+### Dynamisation de `products.php`
+
+Cette solution permet de transformer le catalogue statique en liste dynamique de produits venant de la base de données.
+
+#### 1. Appel du contrôleur dans `products.php`
+
+Code dans `public/products.php` :
+
+```php
+require_once __DIR__ . '/../src/controller.php';
+
+$products = retrieveBuyableDisplayableProducts();
+```
+
+##### Objectif
+
+La page du catalogue ne contient plus une série de produits écrits en dur dans le HTML.
+Elle charge le contrôleur, puis récupère la liste des produits à afficher dans la variable `$products`.
+
+Cela permet d'afficher automatiquement le contenu réel de la base de données.
+
+#### 2. Requête SQL pour récupérer les produits vendables
+
+Code dans `src/controller.php` :
+
+```php
+function retrieveBuyableDisplayableProducts(): array
+{
+    $pdo = getDatabaseConnection();
+    $products = retrieveBuyableProducts($pdo);
+
+    ...
+}
+```
+
+Code dans `src/database.php` :
+
+```php
+function retrieveBuyableProducts(PDO $pdo): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM products WHERE is_available = 1 ORDER BY display_priority');
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+```
+
+##### Objectif
+
+Cette opération vise à récupérer tous les produits disponibles à la vente.
+La condition `is_available = 1` permet d'exclure les produits qui ne doivent pas apparaître dans le catalogue.
+Le tri `ORDER BY display_priority` permet de maîtriser l'ordre d'affichage dans la page.
+
+#### 3. Formatage des données à afficher
+
+Code dans `src/controller.php` :
+
+```php
+    foreach ($products as $index => $product) {
+        $products[$index] = formatDisplayableProduct($product);
+    }
+    return $products;
+```
+
+##### Objectif
+
+Le contrôleur joue ici le rôle d'intermédiaire entre la vue et la base de données.
+Il récupère les produits bruts avec `retrieveBuyableProducts(...)`, puis il applique `formatDisplayableProduct(...)` à chacun d'eux.
+
+Cela permet à la page HTML de recevoir directement des données prêtes à être affichées.
+On comprend tout l'intérêt des fonctions:
+le fait d'avoir centralisé le formatage évite de recopier la même logique dans plusieurs pages ou plusieurs fonctions du contrôleur.
+
+#### 4. Boucle d'affichage dans le HTML
+
+Code dans `public/products.php` :
+
+```php
+<?php foreach ($products as $product) { ?>
+
+    <article class="product-card">
+        <a href="<?php echo $product['url']; ?>">
+            <img src="<?php echo $product['image_url']; ?>"
+                    alt="<?php echo $product['short_description']; ?>"
+                    title="<?php echo $product['name']; ?>">
+        </a>
+        <h2>
+            <a href="<?php echo $product['url']; ?>"><?php echo $product['name']; ?></a>
+        </h2>
+        <p class="product-card-description"><?php echo $product['short_description']; ?></p>
+        <p class="product-card-price"><?php echo $product['price_tvac']; ?> TVAC</p>
+        <a href="<?php echo $product['url']; ?>" class="btn-primary">Voir le produit</a>
+    </article>
+
+<?php } ?>
+```
+
+##### Objectif
+
+Le HTML utilise maintenant une boucle `foreach` pour parcourir tous les produits récupérés.
