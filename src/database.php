@@ -28,3 +28,21 @@ function retrieveBuyableProducts(PDO $pdo): array
     }
     return $products;
 }
+
+function retrieveEffectiveCategories(PDO $pdo): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT * 
+            FROM categories 
+            WHERE id IN (
+                SELECT 
+                    DISTINCT category_id 
+                    FROM product_category
+                    JOIN products ON product_category.product_id = products.id
+                    WHERE products.is_available = 1
+            )
+            ORDER BY categories.name'
+    );
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
