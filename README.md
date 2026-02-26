@@ -6,6 +6,11 @@
 
 Le répertoire `database` contient le schéma de la base de données (MySQL >= 5), ainsi qu'un jeu de données d'exemple.
 
+### Configurer le server web
+
+ - Le `DocumentRoot` du projet est le répertoire `public`.
+ - Les ressources statiques cachables se trouvent dans le répertoire `public/resources`. 
+
 ## Changements
 
  - [Sprint 0: Modélisation de la base de données](docs/sprint-0.md)
