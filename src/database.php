@@ -17,10 +17,33 @@ function retrieveProductById(PDO $pdo, $id): array
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-function retrieveBuyableProducts(PDO $pdo): array
+function retrieveBuyableProducts(PDO $pdo, array $categoryIds = []): array
 {
-    $stmt = $pdo->prepare('SELECT * FROM products WHERE is_available = 1 ORDER BY display_priority');
-    $stmt->execute();
+    $categoryClause = '';
+    $categoryParams = [];
+
+    if ($categoryIds) {
+
+        foreach ($categoryIds as $index => $categoryId) {
+            $categoryParams[':cat' . $index] = $categoryId;
+        }
+
+        $categoryClause = 'AND id IN (
+            SELECT DISTINCT product_id
+            FROM product_category
+            WHERE category_id IN (' . implode(',', array_keys($categoryParams)) . ')
+        )';
+
+    }
+
+    $query = "SELECT *
+                FROM products
+                WHERE is_available = 1
+                $categoryClause
+                ORDER BY display_priority";
+    
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($categoryParams);
 
     $products = [];
     while($product = $stmt->fetch(PDO::FETCH_ASSOC)) {
