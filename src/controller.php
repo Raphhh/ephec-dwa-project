@@ -26,8 +26,10 @@ function retrieveBuyableDisplayableProducts(): array
         $checkedCategories[$index] = filter_var($id, FILTER_VALIDATE_INT);
     }
 
+    $order = $_GET['order'] ?? '';
+
     $pdo = getDatabaseConnection();
-    $products = retrieveBuyableProducts($pdo, $checkedCategories);
+    $products = retrieveBuyableProducts($pdo, $checkedCategories, $order);
 
     foreach ($products as $index => $product) {
         $products[$index] = formatDisplayableProduct($product);
@@ -44,6 +46,7 @@ function retrieveBuyableDisplayableProducts(): array
     return [
         'products' => $products,
         'categories' => $categories,
+        'order' => $order,
     ];
 }
 

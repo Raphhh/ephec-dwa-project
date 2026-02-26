@@ -374,3 +374,200 @@ On garde donc une requête préparée, même si le nombre de catégories varie s
 - La logique de filtrage est gérée dans la couche d'accès aux données.
 - La requête reste adaptable, même avec un nombre variable de catégories sélectionnées.
 - Les paramètres sont transmis proprement à PDO.
+
+
+### Gestion de l'ordre d'affichage des produits
+
+Cette solution permet de trier le catalogue selon l'ordre demandé dans le formulaire, tout en conservant l'option sélectionnée à l'affichage.
+
+#### 1. Récupération du paramètre `order` dans le contrôleur
+
+Code dans `src/controller.php` :
+
+```php
+$order = $_GET['order'] ?? '';
+```
+
+##### Objectif
+
+Le contrôleur lit ici le paramètre `order` transmis par le formulaire.
+Comme pour les catégories, la méthode `GET` permet de retrouver facilement la valeur choisie dans l'URL.
+
+L'expression `$_GET['order'] ?? ''` signifie :
+- si le paramètre existe, on utilise sa valeur ;
+- sinon, on utilise une chaîne vide.
+
+Cela permet de définir un comportement par défaut lorsque l'utilisateur n'a pas encore demandé de tri particulier.
+
+#### 2. Transmission de l'ordre demandé aux différentes couches
+
+Code dans `src/controller.php` :
+
+```php
+$products = retrieveBuyableProducts($pdo, $checkedCategories, $order);
+
+return [
+    'products' => $products,
+    'categories' => $categories,
+    'order' => $order,
+];
+```
+
+Code dans `public/products.php` :
+
+```php
+$data = retrieveBuyableDisplayableProducts();
+$products = $data['products'];
+$categories = $data['categories'];
+$order = $data['order'];
+unset($data);
+```
+
+##### Objectif
+
+Le contrôleur transmet maintenant la valeur du tri à la fonction `retrieveBuyableProducts(...)`.
+Il renvoie aussi cette même valeur à la vue dans la clé `order`.
+
+La page `products.php` peut ainsi utiliser cette information à deux endroits :
+- pour demander les produits dans le bon ordre ;
+- pour réafficher l'option choisie dans le champ `<select>`.
+
+#### 3. Conservation de l'option sélectionnée dans le formulaire
+
+Code dans `public/products.php` :
+
+```php
+<select name="order" id="order">
+    <option value="default">Popularité</option>
+    <option 
+        value="price_asc" 
+        <?php if ($order === 'price_asc') { ?>selected<?php } ?>
+        >Prix croissant</option>
+    <option 
+        value="price_desc"
+        <?php if ($order === 'price_desc') { ?>selected<?php } ?>
+        >Prix décroissant</option>
+</select>
+```
+
+##### Objectif
+
+La vue compare la valeur de `$order` avec chaque option du champ `<select>`.
+Si la valeur correspond à `price_asc` ou `price_desc`, l'attribut `selected` est ajouté sur l'option concernée.
+
+Cela permet de conserver visuellement le tri choisi après l'envoi du formulaire.
+L'utilisateur voit donc immédiatement quel ordre est actuellement appliqué au catalogue.
+
+#### 4. Ajout d'un paramètre facultatif dans `retrieveBuyableProducts(...)`
+
+Code dans `src/database.php` :
+
+```php
+function retrieveBuyableProducts(PDO $pdo, array $categoryIds = [], string $order = ''): array
+{
+    ...
+}
+```
+
+##### Objectif
+
+La fonction d'accès aux produits accepte maintenant un troisième paramètre facultatif : l'ordre demandé.
+Ce paramètre reste optionnel pour conserver un comportement par défaut si aucun tri particulier n'est demandé.
+
+La signature devient donc plus complète :
+- les catégories filtrent les produits à récupérer ;
+- la valeur `order` détermine dans quel ordre ces produits doivent être triés.
+
+#### 5. Construction dynamique de la clause `ORDER BY`
+
+Code dans `src/database.php` :
+
+```php
+$orderClause = 'display_priority ASC';
+if ($order === 'price_asc') {
+    $orderClause = 'price_htva ASC, ' . $orderClause;
+} elseif ($order === 'price_desc') {
+    $orderClause = 'price_htva DESC, ' . $orderClause;
+}
+```
+
+##### Objectif
+
+La variable `$orderClause` contient la partie de la requête SQL qui définit le tri.
+Par défaut, les produits restent triés par `display_priority ASC`.
+
+Si l'utilisateur demande `price_asc`, la requête trie d'abord par prix croissant.
+Si l'utilisateur demande `price_desc`, la requête trie d'abord par prix décroissant.
+
+Dans les deux cas, `display_priority ASC` est conservé à la fin comme critère secondaire.
+Cela permet de garder un ordre stable entre les produits qui ont le même prix.
+
+#### 6. Intégration du tri dans la requête SQL
+
+Code dans `src/database.php` :
+
+```php
+$query = "SELECT *
+            FROM products
+            WHERE is_available = 1
+            $categoryClause
+            ORDER BY $orderClause";
+```
+
+##### Objectif
+
+La requête SQL utilise maintenant la variable `$orderClause` dans le `ORDER BY`.
+Le tri dépend donc directement de la valeur choisie dans le formulaire.
+
+Par exemple, si aucun ordre particulier n'est demandé, la requête ressemble à :
+
+```sql
+SELECT *
+FROM products
+WHERE is_available = 1
+ORDER BY display_priority ASC
+```
+
+Si l'URL vaut par exemple :
+
+```txt
+products.php?order=price_asc
+```
+
+alors la requête ressemble à :
+
+```sql
+SELECT *
+FROM products
+WHERE is_available = 1
+ORDER BY price_htva ASC, display_priority ASC
+```
+
+Si l'URL vaut par exemple :
+
+```txt
+products.php?categories[]=1&categories[]=3&order=price_desc
+```
+
+alors la requête ressemble à :
+
+```sql
+SELECT *
+FROM products
+WHERE is_available = 1
+AND id IN (
+    SELECT DISTINCT product_id
+    FROM product_category
+    WHERE category_id IN (:cat0,:cat1)
+)
+ORDER BY price_htva DESC, display_priority ASC
+```
+
+Le tri peut donc se combiner avec le filtre par catégorie déjà mis en place.
+
+#### Avantage de cette solution
+
+- L'utilisateur peut choisir l'ordre d'affichage du catalogue.
+- Le choix du tri est conservé dans le formulaire après rechargement.
+- Le tri est géré directement dans la requête SQL.
+- Le tri par prix reste compatible avec le filtre par catégorie.

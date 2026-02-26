@@ -17,7 +17,7 @@ function retrieveProductById(PDO $pdo, $id): array
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-function retrieveBuyableProducts(PDO $pdo, array $categoryIds = []): array
+function retrieveBuyableProducts(PDO $pdo, array $categoryIds = [], string $order = ''): array
 {
     $categoryClause = '';
     $categoryParams = [];
@@ -36,12 +36,19 @@ function retrieveBuyableProducts(PDO $pdo, array $categoryIds = []): array
 
     }
 
+    $orderClause = 'display_priority ASC';
+    if ($order === 'price_asc') {
+        $orderClause = 'price_htva ASC, ' . $orderClause;
+    } elseif ($order === 'price_desc') {
+        $orderClause = 'price_htva DESC, ' . $orderClause;
+    }
+
     $query = "SELECT *
                 FROM products
                 WHERE is_available = 1
                 $categoryClause
-                ORDER BY display_priority";
-
+                ORDER BY $orderClause";
+    
     $stmt = $pdo->prepare($query);
     $stmt->execute($categoryParams);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

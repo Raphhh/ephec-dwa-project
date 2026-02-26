@@ -5,6 +5,7 @@ require_once __DIR__ . '/../src/controller.php';
 $data = retrieveBuyableDisplayableProducts();
 $products = $data['products'];
 $categories = $data['categories'];
+$order = $data['order'];
 unset($data);
 
 
@@ -52,8 +53,14 @@ include __DIR__ . ' /../templates/header.php';
                 <label for="order" class="visually-hidden">Ordre de prix</label>
                 <select name="order" id="order">
                     <option value="default">Popularité</option>
-                    <option value="price_asc">Prix croissant</option>
-                    <option value="price_desc">Prix décroissant</option>
+                    <option 
+                        value="price_asc" 
+                        <?php if ($order === 'price_asc') { ?>selected<?php } ?>
+                        >Prix croissant</option>
+                    <option 
+                        value="price_desc"
+                        <?php if ($order === 'price_desc') { ?>selected<?php } ?>
+                        >Prix décroissant</option>
                 </select>
             </div>
 
