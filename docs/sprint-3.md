@@ -210,3 +210,167 @@ il récupère des données brutes depuis la base, puis il les prépare pour qu'e
 - Le formulaire s'adapte automatiquement aux catégories réellement utilisées.
 - L'état des cases cochées est conservé après l'envoi du formulaire.
 - Le contrôleur prépare des données prêtes à être affichées, ce qui garde la vue plus simple.
+
+
+### Filtrage des produits par catégorie
+
+Cette solution permet d'utiliser réellement les catégories sélectionnées dans le formulaire pour limiter les produits affichés dans le catalogue.
+
+#### 1. Validation des identifiants reçus dans le contrôleur
+
+Code dans `src/controller.php` :
+
+```php
+$checkedCategories = $_GET['categories'] ?? [];
+foreach ($checkedCategories as $index => $id) {
+    $checkedCategories[$index] = filter_var($id, FILTER_VALIDATE_INT);
+}
+```
+
+##### Objectif
+
+Le contrôleur parcourt d'abord les identifiants de catégories reçus via l'URL avant de les transmettre à la couche d'accès aux données.
+La fonction `filter_var(..., FILTER_VALIDATE_INT)` permet de vérifier que chaque valeur correspond bien à un entier valide.
+
+Cette étape permet d'éviter de manipuler des valeurs incohérentes ou mal formées.
+Le contrôleur prépare ainsi des données plus propres avant la construction de la requête SQL.
+
+#### 2. Transmission des catégories sélectionnées à la fonction d'accès aux produits
+
+Code dans `src/controller.php` :
+
+```php
+$products = retrieveBuyableProducts($pdo, $checkedCategories);
+```
+
+##### Objectif
+
+La fonction `retrieveBuyableProducts(...)` reçoit maintenant un deuxième argument contenant la liste des catégories sélectionnées.
+Le contrôleur ne se contente donc plus de demander tous les produits vendables :
+il transmet aussi le filtre choisi par l'utilisateur.
+
+Cela permet à la logique de filtrage d'être gérée au bon endroit, c'est-à-dire dans la requête SQL qui récupère les produits.
+
+#### 3. Ajout d'un paramètre facultatif dans `retrieveBuyableProducts(...)`
+
+Code dans `src/database.php` :
+
+```php
+function retrieveBuyableProducts(PDO $pdo, array $categoryIds = []): array
+{
+    ...
+}
+```
+
+##### Objectif
+
+La fonction accepte maintenant un tableau de catégories, tout en gardant un comportement par défaut si aucun filtre n'est fourni.
+Le paramètre `array $categoryIds = []` signifie que :
+- la fonction peut être appelée sans filtre ;
+- elle continue alors à retourner tous les produits vendables ;
+- elle peut aussi recevoir une liste de catégories à utiliser pour limiter les résultats.
+
+Cette signature rend la fonction plus flexible sans casser son usage précédent.
+
+#### 4. Construction dynamique de la clause SQL de filtre
+
+Code dans `src/database.php` :
+
+```php
+$categoryClause = '';
+$categoryParams = [];
+
+if ($categoryIds) {
+
+    foreach ($categoryIds as $index => $categoryId) {
+        $categoryParams[':cat' . $index] = $categoryId;
+    }
+
+    $categoryClause = 'AND id IN (
+        SELECT DISTINCT product_id
+        FROM product_category
+        WHERE category_id IN (' . implode(',', array_keys($categoryParams)) . ')
+    )';
+
+}
+```
+
+##### Objectif
+
+Cette partie prépare la portion de requête SQL nécessaire uniquement si des catégories ont été cochées.
+Si le tableau `$categoryIds` est vide, la variable `$categoryClause` reste vide et aucun filtre supplémentaire n'est appliqué.
+
+Si des catégories sont présentes, la fonction :
+- crée un paramètre nommé pour chaque identifiant, comme `:cat0`, `:cat1`, etc. ;
+- stocke les valeurs correspondantes dans le tableau `$categoryParams` ;
+- construit une clause SQL `IN (...)` qui réutilise ces paramètres.
+
+Le but est d'adapter la requête au nombre de catégories sélectionnées, sans écrire une requête différente à la main pour chaque cas.
+
+#### 5. Filtrage des produits via la table de liaison
+
+Code dans `src/database.php` :
+
+```php
+$query = "SELECT *
+            FROM products
+            WHERE is_available = 1
+            $categoryClause
+            ORDER BY display_priority";
+
+$stmt = $pdo->prepare($query);
+$stmt->execute($categoryParams);
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
+```
+
+##### Objectif
+
+La requête SQL conserve toujours la condition `is_available = 1` pour n'afficher que les produits vendables.
+Lorsque des catégories sont sélectionnées, elle ajoute en plus la clause `AND id IN (...)`.
+
+Cette clause s'appuie sur la table `product_category`, qui fait le lien entre les produits et les catégories.
+La sous-requête retourne les `product_id` associés à au moins une des catégories demandées.
+
+En pratique, cela signifie que le catalogue n'affiche plus tous les produits :
+il n'affiche que ceux qui appartiennent à l'une des catégories cochées par l'utilisateur.
+
+Par exemple, si aucune catégorie n'est sélectionnée, la variable `$query` contiendra une requête de ce type :
+
+```sql
+SELECT *
+FROM products
+WHERE is_available = 1
+ORDER BY display_priority
+```
+
+Si l'URL vaut par exemple :
+
+```txt
+products.php?categories[]=1&categories[]=3
+```
+
+alors la variable `$query` contiendra une requête de ce type :
+
+```sql
+SELECT *
+FROM products
+WHERE is_available = 1
+AND id IN (
+    SELECT DISTINCT product_id
+    FROM product_category
+    WHERE category_id IN (:cat0,:cat1)
+)
+ORDER BY display_priority
+```
+
+et la variable `$categoryParams` contiendra la valeur `['cat0' => 1, 'cat1' => 3]`.
+
+L'utilisation de `prepare(...)` puis de `execute($categoryParams)` permet enfin de transmettre les valeurs proprement à PDO.
+On garde donc une requête préparée, même si le nombre de catégories varie selon le formulaire.
+
+#### Avantage de cette solution
+
+- Le filtre par catégorie est maintenant réellement appliqué aux produits affichés.
+- La logique de filtrage est gérée dans la couche d'accès aux données.
+- La requête reste adaptable, même avec un nombre variable de catégories sélectionnées.
+- Les paramètres sont transmis proprement à PDO.
