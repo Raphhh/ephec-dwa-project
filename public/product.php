@@ -50,6 +50,23 @@ include __DIR__ . ' /../templates/header.php';
                         ✔ En stock (<?php echo $product['stock']; ?> disponibles)
                     </p>
 
+                    <form class="add-to-basket" action="#" method="post">
+                        <div class="form-group">
+                            <label for="quantity">Quantité :</label>
+                            <select id="quantity" name="quantity">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            Ajouter au panier
+                        </button>
+                    </form>
+
                 <?php } else { ?>
 
                     <p class="stock out-of-stock">
@@ -57,7 +74,6 @@ include __DIR__ . ' /../templates/header.php';
                     </p>
 
                 <?php } ?>
-
 
             </div>
 
