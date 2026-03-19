@@ -2,7 +2,11 @@
 
 require_once __DIR__ . '/../src/controller.php';
 
-$products = retrieveBuyableDisplayableProducts();
+$data = retrieveBuyableDisplayableProducts();
+$products = $data['products'];
+$categories = $data['categories'];
+$order = $data['order'];
+unset($data);
 
 
 $title = 'Guitares et amplis - Rock Station';
@@ -16,53 +20,58 @@ include __DIR__ . ' /../templates/header.php';
         <h1>Guitares et amplis</h1>
 
         <form action="#" method="get" class="toolbar-form">
-    
+
             <!-- Dropdown Catégories (multi-checkbox) -->
             <div class="dropdown">
-    
+
                 <button type="button" class="dropdown-toggle">
                     Catégories
                 </button>
-    
+
                 <div class="dropdown-menu">
-    
-                    <label class="dropdown-item">
-                        <input type="checkbox" name="categories[]" value="guitares">
-                        Guitares
-                    </label>
-    
-                    <label class="dropdown-item">
-                        <input type="checkbox" name="categories[]" value="amplis">
-                        Amplis
-                    </label>
-    
-                    <label class="dropdown-item">
-                        <input type="checkbox" name="categories[]" value="accessoires">
-                        Accessoires
-                    </label>
-    
+
+                    <?php foreach ($categories as $category) { ?>
+
+                        <label class="dropdown-item">
+                            <input
+                                type="checkbox"
+                                name="categories[]"
+                                value="<?php echo $category['id']; ?>"
+                                <?php if ($category['is_checked']) { ?>checked<?php } ?>
+                                >
+                            <?php echo $category['name']; ?>
+                        </label>
+
+                    <?php } ?>
+
                 </div>
             </div>
-    
-    
+
+
             <!-- Dropdown Ordre de prix -->
             <div class="toolbar-select">
                 <label for="order" class="visually-hidden">Ordre de prix</label>
                 <select name="order" id="order">
                     <option value="default">Popularité</option>
-                    <option value="price_asc">Prix croissant</option>
-                    <option value="price_desc">Prix décroissant</option>
+                    <option 
+                        value="price_asc" 
+                        <?php if ($order === 'price_asc') { ?>selected<?php } ?>
+                        >Prix croissant</option>
+                    <option 
+                        value="price_desc"
+                        <?php if ($order === 'price_desc') { ?>selected<?php } ?>
+                        >Prix décroissant</option>
                 </select>
             </div>
-    
-    
+
+
             <!-- Bouton neutre -->
             <button type="submit" class="btn-secondary">
                 Appliquer
             </button>
-    
+
         </form>
-    
+
     </section>
     
     <section class="products-grid">
