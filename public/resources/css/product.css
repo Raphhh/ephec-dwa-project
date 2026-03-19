@@ -91,6 +91,19 @@ label {
     border-color: var(--color-primary);
 }
 
+#basket-message-added, 
+#basket-message-error {
+    display:none;
+}
+
+#basket-message-added {
+    color: var(--color-success);
+}
+
+#basket-message-error {
+    color: var(--color-danger);
+}
+
 
 
 /* ===========================

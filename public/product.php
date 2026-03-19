@@ -12,6 +12,7 @@ if ($product) {
     $description = '';
 }
 $specificCssFilePath = 'resources/css/product.css';
+$jsScriptPath = 'resources/js/product.js';
 include __DIR__ . ' /../templates/header.php';
 ?>
 
@@ -50,7 +51,8 @@ include __DIR__ . ' /../templates/header.php';
                         ✔ En stock (<?php echo $product['stock']; ?> disponibles)
                     </p>
 
-                    <form class="add-to-basket" action="#" method="post">
+                    <form id="basket-form" class="add-to-basket" action="#" method="post">
+                        <input type="hidden" name="product-id" value="<?php echo $product['id']; ?>">
                         <div class="form-group">
                             <label for="quantity">Quantité :</label>
                             <select id="quantity" name="quantity">
@@ -64,6 +66,13 @@ include __DIR__ . ' /../templates/header.php';
                             Ajouter au panier
                         </button>
                     </form>
+
+                    <p id="basket-message-added">
+                        ✔ Votre produit a été ajouté au panier.
+                    </p>
+                    <p id="basket-message-error">
+                        ✘ Une erreur est survenue.
+                    </p>
 
                 <?php } else { ?>
 
