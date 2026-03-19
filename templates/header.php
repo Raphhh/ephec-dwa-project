@@ -20,7 +20,7 @@
             <a href="#">Amplis</a>     
         </nav> -->
         <nav class="user-nav">
-            <a href="#" class="basket-link" title="Voir le panier">🛒</a>
+            <a href="basket.php" class="basket-link" title="Voir le panier">🛒</a>
         </nav>
     </div>
 </header>
