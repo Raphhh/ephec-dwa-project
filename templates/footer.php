@@ -6,5 +6,9 @@
     </div>
 </footer>
 
+<?php if (isset($jsScriptPath)) {?>
+    <script type="module" src="<?php echo $jsScriptPath; ?>"></script>
+<?php } ?>
+
 </body>
 </html>
