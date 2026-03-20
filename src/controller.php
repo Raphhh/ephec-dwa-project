@@ -1,6 +1,10 @@
 <?php
+session_start();
+
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/utils.php';
+require_once __DIR__ . '/../src/basket.php';
+require_once __DIR__ . '/../src/session.php';
 
 
 function retrieveDisplayableProduct(): array
@@ -50,4 +54,30 @@ function retrieveBuyableDisplayableProducts(): array
     ];
 }
 
+function addProductToBasket(): void
+{
+    $data = retrieveInputJson();
+    $data['product_id'] = filter_var($data['product_id'], FILTER_VALIDATE_INT);
+    $data['quantity'] = filter_var($data['quantity'], FILTER_VALIDATE_INT);
 
+    $pdo = getDatabaseConnection();
+
+    $modifiedBasket = addItemToBasket(retrieveBasketFromSession(), $data);
+    $modifiedItem = getBasketItem($modifiedBasket, $data);
+    $validation = validateBasketItem($pdo, $modifiedItem);
+    if ($validation['is_valid']) {
+        saveBasketIntoSession($modifiedBasket);
+        $status = 200;
+    } else {
+        http_response_code(400);
+        $status = 400;
+    }
+
+    header('content-type: application/json');
+    echo json_encode([
+        'status' => $status,
+        'basket' => retrieveBasketFromSession(),
+        'item' => $modifiedItem,
+        'validation' => $validation,
+    ]);
+}

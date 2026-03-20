@@ -35,3 +35,9 @@ function formatDisplayableProduct(array $product): array
 
     return $product;
 }
+
+function retrieveInputJson(): array
+{
+    $json = file_get_contents('php://input');
+    return (array) json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+}
