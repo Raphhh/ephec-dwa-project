@@ -95,6 +95,7 @@ function extendBasket(PDO $pdo, array $basket): array
             'product' => $product,
             'quantity' => $item['quantity'],
             'total_htva' => $htva,
+            'validity' => validateProductOrder($product, $item['quantity']),
         ];
         $order['total']['count']++;
         $order['total']['htva'] += $htva;
