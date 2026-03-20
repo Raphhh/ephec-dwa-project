@@ -15,6 +15,8 @@ include __DIR__ . ' /../templates/header.php';
 
     <section class="basket">
 
+    <?php if (!empty($basket['items'])) { ?>
+
         <table class="basket-table">
 
             <thead>
@@ -70,9 +72,12 @@ include __DIR__ . ' /../templates/header.php';
 
         </table>
 
+    <?php } else { ?>
+        <p class="basket-notification">Votre panier est actuellement vide.</p>
+    <?php } ?>
 
     </section>
-    
+
 <?php
 include __DIR__ . ' /../templates/footer.php';
 ?>
