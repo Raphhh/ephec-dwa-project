@@ -81,3 +81,11 @@ function addProductToBasket(): void
         'validation' => $validation,
     ]);
 }
+
+function retrieveCurrentBasket(): array
+{
+    $pdo = getDatabaseConnection();
+
+    $basket = extendBasket($pdo, retrieveBasketFromSession());
+    return formatDisplayableFullBasket($basket);
+}
