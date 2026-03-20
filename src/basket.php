@@ -65,3 +65,43 @@ function generateProductOrderValidation(bool $isAvailableProduct, bool $isAvaila
     }
     return $result;
 }
+
+
+function extendBasket(PDO $pdo, array $basket): array
+{
+    $order = [
+        'items' => [],
+        'total' => [
+            'count' => 0,
+            'htva' => 0,
+            'tvac' => 0,
+        ]
+    ];
+
+    foreach ($basket as $item) {
+        /**
+         * Ce code devrait être optimisé.
+         * En effet, on réalise autant de query SQL qu'il existe de produits
+         * Alors qu'une seule serait nécessaire.
+         */
+        $product = retrieveProductById($pdo, $item['product_id']);
+        if (!$product) {
+            continue;
+        }
+
+        $htva = $product['price_htva'] * $item['quantity'];
+
+        $order['items'][] = [
+            'product' => $product,
+            'quantity' => $item['quantity'],
+            'total_htva' => $htva,
+            'validity' => validateProductOrder($product, $item['quantity']),
+        ];
+        $order['total']['count']++;
+        $order['total']['htva'] += $htva;
+        $order['total']['tvac'] += addTva($htva);
+    }
+
+    return $order;
+}
+

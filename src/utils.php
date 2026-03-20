@@ -36,6 +36,19 @@ function formatDisplayableProduct(array $product): array
     return $product;
 }
 
+function formatDisplayableFullBasket(array $fullBasket): array
+{
+    foreach ($fullBasket['items'] as $index => $item) {
+        $fullBasket['items'][$index]['product'] = formatDisplayableProduct($item['product']);
+        $fullBasket['items'][$index]['total_htva'] = formatPrice($item['total_htva']);
+    }
+
+    $fullBasket['total']['htva'] = formatPrice($fullBasket['total']['htva']);
+    $fullBasket['total']['tvac'] = formatPrice($fullBasket['total']['tvac']);
+
+    return $fullBasket;
+}
+
 function retrieveInputJson(): array
 {
     $json = file_get_contents('php://input');
