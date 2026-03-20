@@ -236,7 +236,32 @@ Elle :
 
 Cela permet à la vue de recevoir des données directement prêtes à être affichées, sans logique de formatage supplémentaire dans le HTML.
 
-#### 4. Boucle d'affichage des lignes du panier dans le HTML
+#### 4. Condition sur l'affichage du tableau
+
+Code dans `public/basket.php` :
+
+```php
+<?php if (!empty($basket['items'])) { ?>
+
+    <table class="basket-table">
+        ...
+    </table>
+
+<?php } else { ?>
+    <p class="basket-notification">Votre panier est actuellement vide.</p>
+<?php } ?>
+```
+
+##### Objectif
+
+La page teste ici si le tableau `$basket['items']` contient au moins une ligne.
+Si le panier contient des produits, le tableau HTML est affiché normalement.
+Sinon, la vue n'affiche pas le tableau et montre à la place un message plus adapté à la situation.
+
+La fonction `empty(...)` n'est pas une nécessité mais offre une certaine souplesse.
+
+
+#### 5. Boucle d'affichage des lignes du panier dans le HTML
 
 Code dans `public/basket.php` :
 
@@ -275,7 +300,7 @@ Pour chaque ligne :
 
 La même structure HTML peut ainsi afficher n'importe quel panier, quel que soit son contenu réel.
 
-#### 5. Affichage dynamique des totaux dans le tableau
+#### 6. Affichage dynamique des totaux dans le tableau
 
 Code dans `public/basket.php` :
 
