@@ -17,6 +17,7 @@ Code dans `public/basket.php` :
 
 ```php
 $jsScriptPathList = [
+        'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js',
         'resources/js/basket.js'
 ];
 ```
@@ -26,7 +27,8 @@ $jsScriptPathList = [
 La page `basket.php` déclare ici un fichier JavaScript spécifique à son comportement.
 Comme pour les autres pages du projet, cette variable est ensuite exploitée par le template commun pour inclure automatiquement le script dans le HTML.
 
-Cela permet de ne charger le JavaScript du panier que sur la page qui en a réellement besoin.
+La librairie Axios doit être chargée dans la page avant l'exécution du script métier du panier.
+Cela permet au code JavaScript du panier d'effectuer facilement un appel HTTP vers l'API.
 
 #### 2. Remplacement de l'affichage statique de la quantité
 
@@ -96,6 +98,7 @@ function manageWidget(widget) {
 
     let quantity = parseInt(quantityElement.innerText)
     let stock = parseInt(widget.dataset.productStock)
+    let productId = parseInt(widget.dataset.productId)
 
     ...
 }
@@ -231,8 +234,42 @@ Si la quantité est égale à `0`, le bouton `-` est désactivé.
 L'interface devient ainsi plus cohérente :
 elle ne se contente pas de corriger la valeur après coup, elle bloque aussi les actions inutiles.
 
+#### 7. Envoi de la requête AJAX à l'API du panier
+
+Code dans `public/resources/js/basket.js` :
+
+```js
+function updateRemote(productId, quantity) {
+    axios.postForm('api/basket/update.php', {
+        product_id: productId,
+        quantity: quantity
+    })
+    .then(response => {
+        console.log('panier mis à jour', response.data)
+    })
+    .catch(error => {
+        console.error(error)
+    });
+}
+```
+
+##### Objectif
+
+La fonction `updateRemote(...)` envoie une requête AJAX POST vers `api/basket/update.php`.
+Elle transmet les deux données attendues par l'API :
+- `product_id` ;
+- `quantity`.
+
+La méthode `axios.postForm(...)` envoie ces valeurs dans un format équivalent à celui d'un formulaire HTML classique.
+Cela reste cohérent avec l'API du sprint précédent, qui lit déjà `$_POST['product_id']` et `$_POST['quantity']`.
+
+Le code traite pour l'instant la réponse de manière simple.
+En cas de succès, il écrit dans la console que le panier a été mis à jour.
+En cas d'erreur, il affiche l'erreur dans la console. 
+
 #### Avantage de cette solution
 
 - L'utilisateur peut modifier la quantité directement depuis le panier.
 - Chaque ligne du panier possède un comportement JavaScript autonome.
 - Le widget respecte les limites de stock côté interface.
+- Le widget de quantité envoie une demande de modification du panier au serveur.

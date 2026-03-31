@@ -7,6 +7,7 @@ $title = 'Panier - Rock Station';
 $description = 'Résumé de votre commande chez Rock Station.';
 $specificCssFilePath = 'resources/css/basket.css';
 $jsScriptPathList = [
+        'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js',
         'resources/js/basket.js'
 ];
 include __DIR__ . ' /../templates/header.php';
