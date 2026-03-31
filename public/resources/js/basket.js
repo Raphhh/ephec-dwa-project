@@ -12,6 +12,7 @@ function manageWidget(widget) {
 
     let quantity = parseInt(quantityElement.innerText)
     let stock = parseInt(widget.dataset.productStock)
+    let productId = parseInt(widget.dataset.productId)
 
     checkButtons(addButton, removeButton, quantity, stock)
 
@@ -22,6 +23,7 @@ function manageWidget(widget) {
         }
         quantityElement.innerText = quantity
         checkButtons(addButton, removeButton, quantity, stock)
+        updateRemote(productId, quantity)
     }
 
     removeButton.onclick = function () {
@@ -31,10 +33,24 @@ function manageWidget(widget) {
         }
         quantityElement.innerText = quantity
         checkButtons(addButton, removeButton, quantity, stock)
+        updateRemote(productId, quantity)
     }
 }
 
 function checkButtons(addButton, removeButton, quantity, max) {
     addButton.disabled = quantity >= max
     removeButton.disabled = quantity <= 0
+}
+
+function updateRemote(productId, quantity) {
+    axios.postForm('api/basket/update.php', {
+        product_id: productId,
+        quantity: quantity
+    })
+    .then(response => {
+        console.log('panier mis à jour', response.data)
+    })
+    .catch(error => {
+        console.error(error)
+    });
 }
