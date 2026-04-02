@@ -65,3 +65,11 @@ function updateBasket(): void
         'basket' => retrieveBasketFromSession(),
     ]);
 }
+
+function retrieveCurrentBasket(): array
+{
+    $pdo = getDatabaseConnection();
+
+    $basket = extendBasket($pdo, retrieveBasketFromSession());
+    return formatDisplayableFullBasket($basket);
+}
