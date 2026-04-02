@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/utils.php';
+require_once __DIR__ . '/../src/basket.php';
+require_once __DIR__ . '/../src/session.php';
 
 
 function retrieveDisplayableProduct(): array
@@ -50,4 +52,16 @@ function retrieveBuyableDisplayableProducts(): array
     ];
 }
 
+function updateBasket(): void
+{
+    $productId = filter_var($_POST['product_id'] ?? 0, FILTER_VALIDATE_INT);
+    $quantity = filter_var($_POST['quantity'] ?? 0, FILTER_VALIDATE_INT);
 
+    $modifiedBasket = updateItemIntoBasket(retrieveBasketFromSession(), $productId, $quantity);
+    saveBasketIntoSession($modifiedBasket);
+
+    header('content-type: application/json');
+    echo json_encode([
+        'basket' => retrieveBasketFromSession(),
+    ]);
+}
