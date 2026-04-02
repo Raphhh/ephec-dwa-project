@@ -179,3 +179,136 @@ Si l'appel échoue, alors la fonction dans `catch()` est appelée.
 Le rôle de la fonction `displayMessage()` est de montrer à l'utilisateur si l'action s'est bien passée ou non.
 Le fichier CSS `public/resources/css/product.css` complète cette logique en cachant les messages par défaut,
 puis en les laissant apparaître uniquement quand JavaScript change leur propriété `display`.
+
+### Ajout d'un produit en session via API
+
+Cette solution permet de recevoir la requête AJAX, de modifier le panier stocké en session, puis de renvoyer une réponse JSON.
+
+#### 1. Point d'entrée de l'API
+
+Code dans `public/api/basket/update.php` :
+
+```php
+<?php
+
+require_once __DIR__ . '/../../../src/controller.php';
+
+updateBasket();
+```
+
+##### Objectif
+
+Ce fichier joue le rôle de point d'entrée HTTP pour l'appel AJAX.
+Quand JavaScript envoie une requête vers `api/basket/update.php`, ce fichier charge le contrôleur puis exécute la fonction `updateBasket()`.
+
+Cela permet d'avoir une URL dédiée pour l'API du panier.
+
+#### 2. Lecture des données envoyées par JavaScript
+
+Code dans `src/controller.php` :
+
+```php
+function updateBasket(): void
+{
+    $productId = filter_var($_POST['product_id'] ?? 0, FILTER_VALIDATE_INT);
+    $quantity = filter_var($_POST['quantity'] ?? 0, FILTER_VALIDATE_INT);
+
+    ...
+}
+```
+
+##### Objectif
+
+Cette partie récupère les données envoyées par la requête AJAX.
+
+Les valeurs `product_id` et `quantity` arrivent dans `$_POST`, puis sont validées comme entiers avec `filter_var(...)`.
+Le but est de s'assurer que PHP travaille avec des données fiables avant de modifier le panier et éviter d'éventuel problème de sécurité.
+
+Il est à noter que les valeurs sont récupérables par la superglobale `$_POST`,
+car la méthode `axios.postForm()` utilisée lors de l'appel AJAX
+envoie les données dans une requête HTTP de type POST dont le `content-type` est `x-www-form-urlencoded`,
+c'est-à-dire un format équivalent à celui d'un envoi de formulaire HTML par défaut.
+
+#### 3. Mise à jour du panier en session
+
+Code dans `src/controller.php` :
+
+```php
+$originalBasket = retrieveBasketFromSession();
+$modifiedBasket = updateItemIntoBasket($originalBasket, $productId, $quantity);
+saveBasketIntoSession($modifiedBasket);
+```
+
+Code dans `src/session.php` :
+
+```php
+function retrieveBasketFromSession(): array
+{
+    if (empty($_SESSION['basket'])) {
+        saveBasketIntoSession([]);
+    }
+    return $_SESSION['basket'];
+}
+
+function saveBasketIntoSession(array $basket): void
+{
+    $_SESSION['basket'] = $basket;
+}
+```
+
+Code dans `src/basket.php` :
+
+```php
+function updateItemIntoBasket(array $basket, int $productId, int $quantity): array
+{
+    $basket[$productId] = $quantity;
+    if ($basket[$productId] <= 0) {
+        unset($basket[$productId]);
+    }
+    return $basket;
+}
+```
+
+##### Objectif
+
+Le panier est stocké en session dans `$_SESSION['basket']`.
+La session permet de conserver des données propres à un visiteur entre plusieurs requêtes HTTP, même si chaque page PHP est exécutée séparément.
+Ici, c'est utile parce que le panier doit rester disponible pendant toute la navigation de l'utilisateur, même s'il change de page avant de confirmer sa commande.
+La clé `basket` sert à ranger ces données à un endroit précis dans `$_SESSION`.
+Cela évite de mélanger le panier avec d'autres informations de session, comme un token CSRF ou d'autres données utilisateur.
+Le nom de clé rend aussi le code plus lisible, car on comprend immédiatement que `$_SESSION['basket']` contient le panier.
+
+Le code commence donc par récupérer le panier actuel, puis il appelle `updateItemIntoBasket(...)` pour modifier la quantité du produit demandé.
+Si la quantité est inférieure ou égale à zéro, le produit est supprimé du panier à l'aide de la fonction `unset()`.
+Sinon, sa quantité est ajoutée ou remplacée dans le tableau.
+Enfin, le panier modifié est sauvegardé à nouveau dans la session.
+
+#### 4. Réponse renvoyée à JavaScript
+
+Code dans `src/controller.php` :
+
+```php
+header('content-type: application/json');
+echo json_encode([
+    'basket' => retrieveBasketFromSession(),
+]);
+```
+
+##### Objectif
+
+Après la mise à jour du panier, l'API renvoie une réponse au format JSON.
+
+En PHP, la fonction `header(...)` permet d'envoyer un en-tête HTTP dans la réponse.
+Ici, elle indique au navigateur et à JavaScript que le contenu renvoyé est du JSON et non du HTML.
+JavaScript peut ainsi récupérer l'état actuel du panier après la modification.
+Le header `content-type: application/json` indique donc explicitement le type de données renvoyé par l'API.
+
+La fonction `json_encode(...)` sert ensuite à transformer une structure de données PHP, 
+par exemple dans notre cas un tableau, en chaîne JSON exploitable par JavaScript.
+
+#### Avantage de cette solution
+
+- Le panier peut être modifié sans rechargement de page.
+- Le code est séparé entre API, contrôleur, logique métier et session.
+- La session permet de conserver le panier entre plusieurs requêtes HTTP.
+- La réponse JSON pourra être réutilisée plus tard pour mettre à jour l'interface du panier dynamiquement.
