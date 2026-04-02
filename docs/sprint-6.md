@@ -337,3 +337,118 @@ Cela garde le tableau cohérent avec la configuration du projet.
 - Les totaux sont calculés dynamiquement.
 - La logique est répartie entre contrôleur, fonctions métier, utilitaires et vue.
 - Le code HTML du panier devient réutilisable et beaucoup plus souple.
+
+
+### Affichage de la validité du panier
+
+Cette solution permet de signaler dans le panier les produits qui ne peuvent plus être commandés correctement.
+La page peut maintenant afficher un message d'erreur directement sous le nom du produit concerné.
+
+#### 1. Ajout d'un état de validité sur chaque item du panier
+
+Code dans `src/basket.php` :
+
+```php
+$order['items'][] = [
+    'product' => $product,
+    'quantity' => $quantity,
+    'total_htva' => $htva,
+    'validity' => validateProductOrder($product, $quantity),
+];
+```
+
+Code dans `src/basket.php` :
+
+```php
+function validateProductOrder(array $product, $quantity): array
+{
+    return generateProductOrderValidation(
+        (bool) $product['is_available'],
+        $quantity <= $product['stock']
+    );
+}
+```
+
+##### Objectif
+
+Chaque ligne du panier reçoit maintenant une clé supplémentaire nommée `validity`.
+Cette clé contient le résultat d'une validation appliquée au produit et à la quantité demandée.
+
+La fonction `validateProductOrder(...)` transforme deux règles métier en informations de validation :
+- le produit doit encore être disponible à la vente ;
+- la quantité demandée ne doit pas dépasser le stock disponible.
+
+Elle prépare ainsi les deux booléens nécessaires à la validation complète d'une ligne du panier.
+
+#### 2. Construction du résultat de validation
+
+Code dans `src/basket.php` :
+
+```php
+function generateProductOrderValidation(bool $isAvailableProduct, bool $isAvailableStock): array
+{
+    $result = [
+        'is_valid' => true,
+        'is_available_product' => $isAvailableProduct,
+        'is_available_stock' => $isAvailableStock,
+    ];
+
+    foreach ($result as $validation) {
+        if (!$validation) {
+            $result['is_valid'] = false;
+            break;
+        }
+    }
+    return $result;
+}
+```
+
+##### Objectif
+
+Cette fonction regroupe le résultat de la validation dans un tableau structuré.
+Elle conserve le détail de chaque règle dans :
+- `is_available_product` ;
+- `is_available_stock`.
+
+Elle calcule ensuite une synthèse dans `is_valid`.
+Si au moins une des règles est fausse, `is_valid` passe à `false`.
+
+#### 3. Affichage conditionnel du message dans le panier
+
+Code dans `public/basket.php` :
+
+```php
+<?php if (!$item['validity']['is_valid']) { ?>
+        <br>
+        <span class="unvalid-product">
+            <?php if (!$item['validity']['is_available_product']) { ?>
+                    Le produit n'est plus disponible à la vente.
+            <?php } elseif (!$item['validity']['is_available_stock']) { ?>
+                    Nos stocks actuellement disponibles se limitent à
+                    <?php echo $product['stock']; ?>
+                    élément(s).
+            <?php } else {  ?>
+                    Une erreur s'est introduite dans votre panier.
+            <?php }  ?>
+        </span>
+<?php } ?>
+```
+
+##### Objectif
+
+La page vérifie d'abord si la ligne du panier est valide.
+Si ce n'est pas le cas, elle affiche un message juste sous le nom du produit.
+
+Le contenu du message dépend ensuite de la cause du problème :
+- produit indisponible à la vente ;
+- quantité demandée supérieure au stock ;
+- ou cas de secours si une incohérence inattendue se produit.
+
+Cette logique permet d'informer l'utilisateur de manière plus précise qu'un simple message générique.
+
+#### Avantage de cette solution
+
+- Le panier signale les produits devenus invalides.
+- L'utilisateur comprend la cause du problème directement dans l'interface.
+- La logique de validation reste centralisée dans les fonctions métier.
+- La vue reçoit des informations prêtes à afficher sans recalculer les règles.

@@ -56,3 +56,7 @@
     text-align: center;
     font-size: larger;
 }
+
+.unvalid-product {
+    color: var(--color-danger);
+}
