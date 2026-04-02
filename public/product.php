@@ -12,6 +12,10 @@ if ($product) {
     $description = '';
 }
 $specificCssFilePath = 'resources/css/product.css';
+$jsScriptPathList = [
+        'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js',
+        'resources/js/product.js',
+];
 include __DIR__ . ' /../templates/header.php';
 ?>
 
@@ -50,7 +54,8 @@ include __DIR__ . ' /../templates/header.php';
                         ✔ En stock (<?php echo $product['stock']; ?> disponibles)
                     </p>
 
-                    <form class="add-to-basket" action="#" method="post">
+                    <form id="basket-form" class="add-to-basket" action="#" method="post">
+                        <input type="hidden" id="product-id" name="product-id" value="<?php echo $product['id']; ?>">
                         <div class="form-group">
                             <label for="quantity">Quantité :</label>
                             <select id="quantity" name="quantity">
@@ -60,10 +65,17 @@ include __DIR__ . ' /../templates/header.php';
                             </select>
                         </div>
 
-                        <button type="submit" class="btn-primary">
+                        <button type="button" class="btn-primary" onclick="updateBasket()">
                             Ajouter au panier
                         </button>
                     </form>
+
+                    <p id="basket-message-added">
+                        ✔ Votre produit a été ajouté au panier.
+                    </p>
+                    <p id="basket-message-error">
+                        ✘ Une erreur est survenue.
+                    </p>
 
                 <?php } else { ?>
 
