@@ -6,6 +6,9 @@ $basket = retrieveCurrentBasket();
 $title = 'Panier - Rock Station';
 $description = 'Résumé de votre commande chez Rock Station.';
 $specificCssFilePath = 'resources/css/basket.css';
+$jsScriptPathList = [
+        'resources/js/basket.js'
+];
 include __DIR__ . ' /../templates/header.php';
 ?>
 
@@ -58,7 +61,19 @@ include __DIR__ . ' /../templates/header.php';
                         </a>
                     </td>
                     <td><?php echo $product['price_htva']; ?></td>
-                    <td><?php echo $item['quantity'] ?></td>
+                    <td>
+                        <span
+                                class="basket-quantity-widget"
+                                data-product-id="<?php echo $product['id']; ?>"
+                                data-product-stock="<?php echo $product['stock']; ?>"
+                        >
+                            <button class="basket-quantity-widget-remove-button">-</button>
+                            <span class="basket-quantity-widget-quantity">
+                                <?php echo $item['quantity']; ?>
+                            </span>
+                            <button class="basket-quantity-widget-add-button">+</button>
+                        </span>
+                    </td>
                     <td><?php echo $item['total_htva']; ?></td>
                 </tr>
             <?php } ?>
