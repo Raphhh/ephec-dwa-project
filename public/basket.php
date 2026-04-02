@@ -41,6 +41,20 @@ include __DIR__ . ' /../templates/header.php';
                                  title="<?php echo $product['name']; ?>"
                                  class="basket-img">
                             <?php echo $product['name']; ?>
+                            <?php if (!$item['validity']['is_valid']) { ?>
+                                    <br>
+                                    <span class="unvalid-product">
+                                        <?php if (!$item['validity']['is_available_product']) { ?>
+                                                Le produit n'est plus disponible à la vente.
+                                        <?php } elseif (!$item['validity']['is_available_stock']) { ?>
+                                                Nos stocks actuellement disponibles se limitent à
+                                                <?php echo $product['stock']; ?>
+                                                élément(s).
+                                        <?php } else {  ?>
+                                                Une erreur s'est introduite dans votre panier.
+                                        <?php }  ?>
+                                    </span>
+                            <?php } ?>
                         </a>
                     </td>
                     <td><?php echo $product['price_htva']; ?></td>
