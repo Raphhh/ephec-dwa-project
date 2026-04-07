@@ -244,12 +244,8 @@ function updateRemote(productId, quantity) {
         product_id: productId,
         quantity: quantity
     })
-    .then(response => {
-        console.log('panier mis à jour', response.data)
-    })
-    .catch(error => {
-        console.error(error)
-    });
+    
+    ...
 }
 ```
 
@@ -263,13 +259,164 @@ Elle transmet les deux données attendues par l'API :
 La méthode `axios.postForm(...)` envoie ces valeurs dans un format équivalent à celui d'un formulaire HTML classique.
 Cela reste cohérent avec l'API du sprint précédent, qui lit déjà `$_POST['product_id']` et `$_POST['quantity']`.
 
-Le code traite pour l'instant la réponse de manière simple.
-En cas de succès, il écrit dans la console que le panier a été mis à jour.
-En cas d'erreur, il affiche l'erreur dans la console. 
-
 #### Avantage de cette solution
 
 - L'utilisateur peut modifier la quantité directement depuis le panier.
 - Chaque ligne du panier possède un comportement JavaScript autonome.
 - Le widget respecte les limites de stock côté interface.
 - Le widget de quantité envoie une demande de modification du panier au serveur.
+
+
+### Mise à jour dynamique de l'affichage du panier
+
+Cette solution permet de répercuter immédiatement dans la page les nouvelles valeurs renvoyées par l'API après modification d'une quantité.
+Le panier ne se contente donc plus d'envoyer une requête AJAX : il met aussi à jour ses sous-totaux et ses totaux à l'écran.
+
+
+#### 1. Retour d'un panier enrichi dans la réponse JSON
+
+Code dans `src/controller.php` :
+
+```php
+echo json_encode([
+    'basket' => formatDisplayableFullBasket(
+        extendBasket($pdo, retrieveBasketFromSession())
+    ),
+]);
+```
+
+##### Objectif
+
+L'API ne renvoie plus simplement le panier brut stocké en session.
+Elle renvoie maintenant un panier enrichi puis formaté, avec :
+- les produits complets ;
+- les sous-totaux formatés ;
+- les totaux formatés.
+
+Cela rend la réponse JSON directement exploitable côté JavaScript pour l'affichage.
+Le front-end peut ainsi réutiliser les valeurs renvoyées par le serveur pour mettre à jour l'affichage sans recalculer lui-même les montants.
+
+#### 2. Ajout d'identifiants et de classes pour cibler les éléments HTML
+
+Code dans `public/basket.php` :
+
+```php
+<tr id="item-<?php echo $product['id']; ?>">
+```
+
+```php
+<td class="item-product-price-htva"><?php echo $product['price_htva']; ?></td>
+<td class="item-quantity">
+    ...
+</td>
+<td class="item-total-htva"><?php echo $item['total_htva']; ?></td>
+```
+
+```php
+<td id="basket-total-count"><?php echo $basket['total']['count']; ?></td>
+<td id="basket-total-htva"><?php echo $basket['total']['htva']; ?></td>
+<td id="basket-total-tvac"><?php echo $basket['total']['tvac']; ?></td>
+```
+
+##### Objectif
+
+Le HTML ajoute maintenant des identifiants et des classes sur les zones qui devront être mises à jour en JavaScript.
+
+Cela permet de cibler précisément :
+- la ligne d'un produit donné ;
+- le sous-total HTVA de cette ligne ;
+- les trois totaux globaux du panier.
+
+Sans ces repères dans le DOM, le script ne pourrait pas modifier facilement les bonnes zones après la réponse de l'API.
+
+#### 3. Mise à jour de la ligne modifiée après la réponse AJAX
+
+Code dans `public/resources/js/basket.js` :
+
+```js
+.then(response => {
+    console.log('panier mis à jour', response.data)
+    updateBasketItemDisplay(
+        findBasketItemByProductId(response.data.basket.items, productId)
+    )
+    updateBasketTotalDisplay(response.data.basket.total)
+})
+```
+
+Code dans `public/resources/js/basket.js` :
+
+```js
+function findBasketItemByProductId(items, productId) {
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].product.id == productId) {
+            return items[i]
+        }
+    }
+    return {
+        product: {
+            id: productId
+        },
+        total_htva: '0 €'
+    }
+}
+```
+
+##### Objectif
+
+Après la réponse de l'API, le script recherche d'abord l'item correspondant au produit modifié.
+
+La réponse JSON contient la liste complète des items du panier.
+Le script doit donc retrouver l'item correspondant au produit qui vient d'être modifié.
+
+La fonction `findBasketItemByProductId(...)` parcourt cette liste et renvoie l'item trouvé.
+Si aucun item ne correspond, elle renvoie un objet minimal avec un total à `0 €`.
+
+Ce cas de secours permet de continuer à mettre à jour l'affichage même si le produit a disparu du panier, par exemple si sa quantité a été ramenée à `0`.
+
+Le script met ensuite à jour le sous-total HTVA de la ligne concernée ainsi que le total du panier.
+
+#### 4. Mise à jour du total de la ligne
+
+```js
+function updateBasketItemDisplay(item) {
+    console.log('item update', item)
+    let rowElement = document.getElementById('item-' + item.product.id)
+    rowElement.querySelector('.item-total-htva').innerText = item.total_htva
+}
+```
+
+##### Objectif
+
+Le code s'appuie sur l'identifiant de la ligne HTML, construit sous la forme `item-<id>`.
+Le DOM est ainsi modifié localement, sans rechargement complet de la page.
+
+#### 5. Mise à jour des totaux globaux du panier
+
+Code dans `public/resources/js/basket.js` :
+
+```js
+function updateBasketTotalDisplay(total) {
+    console.log('total update', total)
+    document.getElementById('basket-total-count').innerText = total.count
+    document.getElementById('basket-total-htva').innerText = total.htva
+    document.getElementById('basket-total-tvac').innerText = total.tvac
+}
+```
+
+##### Objectif
+
+Cette fonction met à jour les trois totaux affichés dans le pied du tableau :
+- le nombre total d'articles ;
+- le total HTVA ;
+- le total TVAC.
+
+Le panier reste ainsi cohérent après chaque modification de quantité.
+L'utilisateur voit immédiatement l'impact de son action sur l'ensemble de la commande.
+
+
+#### Avantage de cette solution
+
+- Les montants affichés sont mis à jour sans rechargement de page.
+- L'interface reste synchronisée avec les valeurs calculées côté serveur.
+- Le JavaScript réutilise directement la réponse JSON de l'API.
+- Le panier devient plus interactif et plus proche d'un comportement applicatif complet.

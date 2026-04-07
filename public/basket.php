@@ -36,9 +36,9 @@ include __DIR__ . ' /../templates/header.php';
 
             <?php foreach ($basket['items'] as $item) { ?>
                 <?php $product = $item['product']; ?>
-                <tr>
+                <tr id="item-<?php echo $product['id']; ?>">
                     <!-- Produit <?php echo $product['id']; ?> -->
-                    <td>
+                    <td class="item-global-description">
                         <a href="<?php echo $product['url']; ?>">
                             <img src="<?php echo $product['image_url']; ?>"
                                  alt="<?php echo $product['short_description']; ?>"
@@ -61,8 +61,8 @@ include __DIR__ . ' /../templates/header.php';
                             <?php } ?>
                         </a>
                     </td>
-                    <td><?php echo $product['price_htva']; ?></td>
-                    <td>
+                    <td class="item-product-price-htva"><?php echo $product['price_htva']; ?></td>
+                    <td class="item-quantity">
                         <span
                                 class="basket-quantity-widget"
                                 data-product-id="<?php echo $product['id']; ?>"
@@ -75,7 +75,7 @@ include __DIR__ . ' /../templates/header.php';
                             <button class="basket-quantity-widget-add-button">+</button>
                         </span>
                     </td>
-                    <td><?php echo $item['total_htva']; ?></td>
+                    <td class="item-total-htva"><?php echo $item['total_htva']; ?></td>
                 </tr>
             <?php } ?>
 
@@ -85,17 +85,17 @@ include __DIR__ . ' /../templates/header.php';
 
                 <tr>
                     <th colspan="3">Nombre total d’articles</th>
-                    <td><?php echo $basket['total']['count']; ?></td>
+                    <td id="basket-total-count"><?php echo $basket['total']['count']; ?></td>
                 </tr>
 
                 <tr>
                     <th colspan="3">Total HTVA</th>
-                    <td><?php echo $basket['total']['htva']; ?></td>
+                    <td id="basket-total-htva"><?php echo $basket['total']['htva']; ?></td>
                 </tr>
 
                 <tr>
                     <th colspan="3">Total TVAC (<?php echo fomatTva();?>)</th>
-                    <td><?php echo $basket['total']['tvac']; ?></td>
+                    <td id="basket-total-tvac"><?php echo $basket['total']['tvac']; ?></td>
                 </tr>
 
             </tfoot>
