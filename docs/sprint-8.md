@@ -815,3 +815,52 @@ La page finale devient ainsi une page de consultation normale, que l'on peut rec
 - Le client existant peut être réutilisé via son email.
 - Le stock des produits est mis à jour au moment de la commande.
 - Le panier est vidé seulement si la commande a été créée avec succès.
+
+
+## Affichage des détails de la confirmation
+
+Cette solution permet à la page de confirmation d'afficher le véritable numéro de commande créé juste avant la redirection.
+
+### 1. Récupération de l'identifiant de commande dans le contrôleur
+
+Code dans `src/controller.php` :
+
+```php
+function manageConfirmation(): int
+{
+    return filter_var($_GET['order'] ?? 0, FILTER_VALIDATE_INT);
+}
+```
+
+Code dans `public/confirmation.php` :
+
+```php
+require_once __DIR__ . '/../src/controller.php';
+
+$orderId = manageConfirmation();
+```
+
+```php
+<p class="confirmation-details">
+    Votre numéro de commande est :
+    <strong><?php echo $orderId; ?></strong>
+</p>
+```
+
+#### Objectif
+
+La fonction `manageConfirmation()` lit le paramètre `order` dans l'URL.
+Ce paramètre est celui qui a été ajouté lors de la redirection après la création de commande :
+par exemple `confirmation.php?order=15`.
+
+La valeur est validée avec `filter_var(..., FILTER_VALIDATE_INT)` pour s'assurer qu'il s'agit bien d'un entier.
+Le contrôleur évite ainsi de travailler avec une valeur invalide avant de l'afficher.
+
+Le numéro affiché dans la page de confirmation provient maintenant de la variable `$orderId`.
+L'utilisateur voit donc un identifiant cohérent avec la commande réellement enregistrée en base de données.
+
+### Avantage de cette solution
+
+- La page de confirmation affiche le vrai numéro de commande.
+- Le numéro provient directement de l'URL générée après la création de commande.
+

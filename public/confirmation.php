@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../src/controller.php';
 
+$orderId = manageConfirmation();
+
 $title = 'Confirmation de commande - Rock Station';
 $description = 'Confirmation de votre commande Rock Station.';
 $specificCssFilePath = 'resources/css/confirmation.css';
@@ -17,7 +19,7 @@ include __DIR__ . ' /../templates/header.php';
 
         <p class="confirmation-details">
             Votre numéro de commande est :
-            <strong>123</strong>
+            <strong><?php echo $orderId; ?></strong>
         </p>
 
         <p class="confirmation-status">
