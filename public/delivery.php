@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../src/controller.php';
 
+manageDelivery();
+
 $title = 'Adresse de livraison - Rock Station';
 $description = 'Adresse de livraison pour votre commande Rock Station.';
 $specificCssFilePath = 'resources/css/delivery.css';
