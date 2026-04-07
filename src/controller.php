@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/utils.php';
 require_once __DIR__ . '/../src/basket.php';
+require_once __DIR__ . '/../src/order.php';
 require_once __DIR__ . '/../src/session.php';
 
 
@@ -87,4 +88,27 @@ function manageDelivery()
         header('Location: ./basket.php');
         exit();
     }
+
+    $isPost = !empty($_POST['token']);
+
+    $form = [];
+    $form['token'] = $_POST['token'] ?? '';
+    $form['email'] = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+    $form['lastname'] = $_POST['lastname'] ?? '';
+    $form['firstname'] = $_POST['firstname'] ?? '';
+    $form['street'] = $_POST['street'] ?? '';
+    $form['postal'] = $_POST['postal'] ?? '';
+    $form['city'] = $_POST['city'] ?? '';
+    $form['country'] = $_POST['country'] ?? '';
+
+    if ($form['token'] == retrieveCSRFToken() && validateDeliveryForm($form)) {
+        header('Location: ./confirmation.php');
+        exit();
+    }
+
+    $form['token'] = renewCSRFToken();
+    return [
+        'form' => $form,
+        'is_post' => $isPost,
+    ];
 }
