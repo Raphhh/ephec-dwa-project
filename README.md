@@ -15,6 +15,7 @@ Le répertoire `database` contient le schéma de la base de données (MySQL >= 5
 
  - [Sprint 0: Modélisation de la base de données](docs/sprint-0.md)
  - [Sprint 1: Pages produits statiques](docs/sprint-1.md)
+ - [Sprint 2: Pages produits dynamiques](docs/sprint-2.md)
 
 ## Schéma des données
 
