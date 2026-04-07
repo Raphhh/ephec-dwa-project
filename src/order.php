@@ -49,3 +49,57 @@ function validateForm(array $form, array $validations): bool
     }
     return true;
 }
+
+function processToOrder(PDO $pdo, array $deliveryForm, array $basket): int
+{
+    $pdo->beginTransaction();
+
+    try {
+        $customerId = retrieveCustomerIdByEmail($pdo, $deliveryForm['email']);
+
+        if (!$customerId) {
+            $customerId = createCustomer(
+                $pdo,
+                $deliveryForm['email'],
+                $deliveryForm['firstname'],
+                $deliveryForm['lastname']
+            );
+        }
+
+        $addressId = createAddress(
+            $pdo,
+            $customerId,
+            $deliveryForm['street'],
+            $deliveryForm['postal'],
+            $deliveryForm['city'],
+            $deliveryForm['country']
+        );
+
+        $orderId = createOrder(
+            $pdo,
+            $customerId,
+            $addressId,
+            $basket['total']['htva'],
+            $basket['total']['tvac']
+        );
+
+        foreach ($basket['items'] as $item) {
+            createOrderLine(
+                $pdo,
+                $orderId,
+                $item['product']['id'],
+                $item['quantity'],
+                $item['product']['price_htva'],
+                $item['total_htva']
+            );
+            decreaseProductStock($pdo, $item['product']['id'], $item['quantity']);
+        }
+
+        $pdo->commit();
+        return $orderId;
+
+    } catch (Throwable $exception) {
+        $pdo->rollBack();
+        return 0;
+    }
+}
