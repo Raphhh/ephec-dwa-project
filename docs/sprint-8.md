@@ -237,14 +237,13 @@ Cela améliore l'expérience utilisateur :
 il n'a pas besoin de retaper tout le formulaire après une erreur de validation.
 
 
-### 3. Traitement du formulaire
+### 3. Validation du formulaire
 
 Code dans `src/controller.php` :
 
 ```php
 if ($form['token'] == retrieveCSRFToken() && validateDeliveryForm($form)) {
-    header('Location: ./confirmation.php');
-    exit();
+    ...
 }
 ```
 
@@ -254,8 +253,7 @@ Le passage à la page `confirmation.php` n'est autorisé que si deux conditions 
 - le token CSRF reçu est correct ;
 - le formulaire respecte les règles de validation.
 
-La redirection ne se fait donc pas simplement parce qu'une requête POST a été envoyée.
-Le contrôleur vérifie d'abord que la soumission est légitime et que les données sont cohérentes.
+Le contrôleur vérifie que la soumission est légitime et que les données sont cohérentes avant d'effectuer ensuite le traitement de la commande.
 
 ### 4. Sécurisation CSRF
 
@@ -461,3 +459,359 @@ Le booléen `$isPost` sert simplement à distinguer :
 - La logique de validation est centralisée dans `src/order.php`.
 - Le token CSRF protège la soumission contre les requêtes forgées depuis un autre site.
 - La redirection vers `confirmation.php` n'a lieu que si la requête est à la fois valide métier et légitime côté sécurité.
+
+
+## Confirmation de commande
+
+Cette solution permet de transformer la validation du formulaire de livraison en véritable création de commande en base de données.
+Si tout se passe bien, le panier est vidé puis l'utilisateur est redirigé vers la page de confirmation avec l'identifiant de sa commande.
+
+### 1. Déclenchement du traitement de commande dans le contrôleur
+
+Code dans `src/controller.php` :
+
+```php
+if ($form['token'] == retrieveCSRFToken() && validateDeliveryForm($form)) {
+    $orderId = processToOrder($pdo, $form, $basket);
+    if ($orderId) {
+        saveBasketIntoSession([]);
+        header("Location: ./confirmation.php?order=$orderId");
+        exit();
+    }
+}
+```
+
+#### Objectif
+
+Le contrôleur appelle `processToOrder(...)` pour générer la commande.
+
+La variable `$orderId` contient l'identifiant de la commande créée (ou 0 en cas de problème).
+Si cette création réussit :
+- le panier en session est vidé ;
+- l'utilisateur est redirigé vers `confirmation.php` ;
+- l'identifiant de commande est transmis dans l'URL via `?order=...`.
+
+Cette redirection permet donc à la page de confirmation de savoir quelle commande vient d'être créée.
+
+### 2. Mise en place d'une fonction métier dédiée à la création de commande
+
+Code dans `src/order.php` :
+
+```php
+function processToOrder(PDO $pdo, array $deliveryForm, array $basket): int
+{
+    ...
+}
+```
+
+#### Objectif
+
+La logique de création de commande est regroupée dans `processToOrder(...)`.
+Cette fonction reçoit :
+- la connexion PDO ;
+- les données du formulaire de livraison ;
+- le panier enrichi.
+
+Elle centralise toute la séquence métier nécessaire pour enregistrer une commande complète.
+Le contrôleur garde ainsi un rôle d'orchestration, tandis que la logique de traitement est regroupée dans `src/order.php`.
+
+### 3. Utilisation d'une transaction SQL
+
+Code dans `src/order.php` :
+
+```php
+try {
+    $pdo->beginTransaction();
+
+    ...
+
+    $pdo->commit();
+    return $orderId;
+
+} catch (Throwable $exception) {
+    $pdo->rollBack();
+    return 0;
+}
+```
+
+#### Objectif
+
+La création d'une commande ne consiste pas en une seule requête SQL.
+Elle nécessite plusieurs écritures successives :
+- éventuellement créer un client ;
+- créer une adresse ;
+- créer la commande ;
+- créer les lignes de commande ;
+- décrémenter les stocks.
+
+La transaction garantit que ces opérations forment un tout cohérent.
+Si une erreur survient au milieu, `rollBack()` annule l'ensemble des modifications déjà effectuées dans la transaction.
+
+Le but est d'éviter les incohérences, par exemple :
+- une commande créée sans lignes de commande ;
+- un stock diminué sans commande valide ;
+- une adresse enregistrée alors que la commande a échoué.
+
+Si tout se passe correctement, la fonction retourne la clé primaire de la nouvelle commande.
+Dans le cas contraire, elle retourne 0, qui n'est pas une clé primaire valide. 
+Dans un tel cas, le contrôleur ne procède pas à la redirection et affiche un message d'erreur générique.
+
+
+### 4. Réutilisation ou création du client
+
+Code dans `src/order.php` :
+
+```php
+$customerId = retrieveCustomerIdByEmail($pdo, $deliveryForm['email']);
+
+if (!$customerId) {
+    $customerId = createCustomer(
+        $pdo,
+        $deliveryForm['email'],
+        $deliveryForm['firstname'],
+        $deliveryForm['lastname']
+    );
+}
+```
+
+Code dans `src/database.php` :
+
+```php
+function retrieveCustomerIdByEmail(PDO $pdo, string $email): int
+{
+    $stmt = $pdo->prepare('SELECT id FROM customers WHERE email = :email');
+    $stmt->execute(['email' => $email]);
+    return (int) ($stmt->fetchColumn() ?: 0);
+}
+```
+
+```php
+function createCustomer(PDO $pdo, string $email, string $firstName, string $lastName): int
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO customers (email, first_name, last_name)
+         VALUES (:email, :first_name, :last_name)'
+    );
+    $stmt->execute([
+        'email' => $email,
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+    ]);
+    return (int) $pdo->lastInsertId();
+}
+```
+
+#### Objectif
+
+Le traitement commence par chercher si un client existe déjà avec le même email.
+Si oui, son identifiant est réutilisé.
+Sinon, un nouveau client est créé.
+
+Cette étape évite de créer plusieurs enregistrements différents pour un même client s'il repasse commande avec la même adresse email.
+
+A noter qu'en base de données, la colonne `customers.email` possède une contrainte d'unicité (`UNIQUE`).
+On ne pourrait donc pas se passer de cette étape, au risque de déclencher une erreur d'intégrité MySQL.
+
+La clé primaire du client est conservée car elle sera nécessaire à l'enregistrement de l'adresse.
+Pour récupérer cet identifiant, on utilise la méthode `PDO::lastInsertId()`.
+
+### 5. Création de l'adresse de livraison
+
+Code dans `src/order.php` :
+
+```php
+$addressId = createAddress(
+    $pdo,
+    $customerId,
+    $deliveryForm['street'],
+    $deliveryForm['postal'],
+    $deliveryForm['city'],
+    $deliveryForm['country']
+);
+```
+
+Code dans `src/database.php` :
+
+```php
+function createAddress(
+    PDO $pdo,
+    int $customerId,
+    string $street,
+    string $zipCode,
+    string $city,
+    string $country
+): int {
+    $stmt = $pdo->prepare(
+        'INSERT INTO addresses (customer_id, street, zip_code, city, country)
+         VALUES (:customer_id, :street, :zip_code, :city, :country)'
+    );
+    $stmt->execute([
+        'customer_id' => $customerId,
+        'street' => $street,
+        'zip_code' => $zipCode,
+        'city' => $city,
+        'country' => $country,
+    ]);
+    return (int) $pdo->lastInsertId();
+}
+```
+
+#### Objectif
+
+Une nouvelle adresse de livraison est créée à partir des données du formulaire.
+L'identifiant du client est lié à cette adresse.
+
+Le traitement dissocie donc bien :
+- le client ;
+- l'adresse de livraison ;
+- la commande elle-même.
+
+### 6. Création de la commande principale
+
+Code dans `src/order.php` :
+
+```php
+$orderId = createOrder(
+    $pdo,
+    $customerId,
+    $addressId,
+    $basket['total']['htva'],
+    $basket['total']['tvac']
+);
+```
+
+Code dans `src/database.php` :
+
+```php
+function createOrder(PDO $pdo, int $customerId, int $deliveryAddressId, float $totalHtva, float $totalTvac): int
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO orders (customer_id, delivery_address_id, total_htva, total_tvac)
+         VALUES (:customer_id, :delivery_address_id, :total_htva, :total_tvac)'
+    );
+    $stmt->execute([
+        'customer_id' => $customerId,
+        'delivery_address_id' => $deliveryAddressId,
+        'total_htva' => $totalHtva,
+        'total_tvac' => $totalTvac,
+    ]);
+    return (int) $pdo->lastInsertId();
+}
+```
+
+#### Objectif
+
+La commande principale est ensuite enregistrée dans la table `orders`.
+Elle relie :
+- le client ;
+- l'adresse de livraison ;
+- les montants globaux de la commande.
+
+L'identifiant de la commande est conservé et devient la référence centrale de toute la commande.
+
+### 7. Création des lignes de commande et mise à jour du stock
+
+Code dans `src/order.php` :
+
+```php
+foreach ($basket['items'] as $item) {
+    createOrderLine(
+        $pdo,
+        $orderId,
+        $item['product']['id'],
+        $item['quantity'],
+        $item['product']['price_htva'],
+        $item['total_htva']
+    );
+    decreaseProductStock($pdo, $item['product']['id'], $item['quantity']);
+}
+```
+
+Code dans `src/database.php` :
+
+```php
+function createOrderLine(
+    PDO $pdo,
+    int $orderId,
+    int $productId,
+    int $quantity,
+    float $unitPriceHtva,
+    float $lineTotalHtva
+): void {
+    $stmt = $pdo->prepare(
+        'INSERT INTO order_lines (order_id, product_id, quantity, unit_price_htva, line_total_htva)
+         VALUES (:order_id, :product_id, :quantity, :unit_price_htva, :line_total_htva)'
+    );
+    $stmt->execute([
+        'order_id' => $orderId,
+        'product_id' => $productId,
+        'quantity' => $quantity,
+        'unit_price_htva' => $unitPriceHtva,
+        'line_total_htva' => $lineTotalHtva,
+    ]);
+}
+```
+
+```php
+function decreaseProductStock(PDO $pdo, int $productId, int $quantity): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE products
+         SET stock = stock - :quantity
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'id' => $productId,
+        'quantity' => $quantity,
+    ]);
+}
+```
+
+#### Objectif
+
+La boucle parcourt tous les items du panier.
+Pour chacun :
+- une ligne de commande est créée dans `order_lines` ;
+- le stock du produit est décrémenté dans `products`.
+
+Cette étape traduit donc le panier utilisateur en écritures réelles de commande dans la base de données.
+
+### 8. Vidage du panier et redirection vers la confirmation
+
+Code dans `src/controller.php` :
+
+```php
+if ($orderId) {
+    saveBasketIntoSession([]);
+    header("Location: ./confirmation.php?order=$orderId");
+    exit();
+}
+```
+
+#### Objectif
+
+Une fois la commande créée avec succès, le panier en session est vidé.
+Cela évite que les mêmes produits restent dans le panier après validation de la commande.
+
+Le contrôleur redirige ensuite vers `confirmation.php` en transmettant l'identifiant de la commande dans l'URL.
+La page de confirmation pourra ainsi, plus tard, afficher ou utiliser cette référence.
+
+Cette redirection après un traitement valide présente aussi un intérêt important dans le cycle HTTP.
+Elle évite qu'un simple rafraîchissement de la page ne renvoie une nouvelle fois le formulaire de commande.
+Sans redirection, le navigateur resterait sur la réponse au `POST`, et l'utilisateur pourrait recréer la même commande en rechargeant la page.
+
+On applique ici le principe classique `POST / Redirect / GET` :
+- le formulaire est envoyé en `POST` ;
+- le serveur traite la commande ;
+- puis il redirige vers une nouvelle page consultée en `GET`.
+
+La page finale devient ainsi une page de consultation normale, que l'on peut recharger sans rejouer le traitement métier de la commande.
+
+
+### Avantage de cette solution
+
+- La validation du formulaire crée maintenant une vraie commande en base de données.
+- Les écritures liées à la commande sont regroupées dans une transaction.
+- Le client existant peut être réutilisé via son email.
+- Le stock des produits est mis à jour au moment de la commande.
+- Le panier est vidé seulement si la commande a été créée avec succès.

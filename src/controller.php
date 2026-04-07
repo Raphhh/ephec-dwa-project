@@ -102,8 +102,12 @@ function manageDelivery()
     $form['country'] = $_POST['country'] ?? '';
 
     if ($form['token'] == retrieveCSRFToken() && validateDeliveryForm($form)) {
-        header('Location: ./confirmation.php');
-        exit();
+        $orderId = processToOrder($pdo, $form, $basket);
+        if ($orderId) {
+            saveBasketIntoSession([]);
+            header("Location: ./confirmation.php?order=$orderId");
+            exit();
+        }
     }
 
     $form['token'] = renewCSRFToken();
