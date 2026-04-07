@@ -178,6 +178,17 @@ main.container {
     transform: scale(0.97);
 }
 
+.btn-primary[disabled] {
+    cursor: not-allowed;
+    transition: none;
+    color: var(--color-text-light);
+    background-color: var(--color-text-muted);
+}
+
+.btn-primary[disabled]:active {
+    transform: none;
+}
+
 .btn-neutral {
     display: inline-block;
     line-height: normal;

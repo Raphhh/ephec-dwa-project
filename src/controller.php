@@ -77,3 +77,14 @@ function retrieveCurrentBasket(): array
     $basket = extendBasket($pdo, retrieveBasketFromSession());
     return formatDisplayableFullBasket($basket);
 }
+
+function manageDelivery()
+{
+    $pdo = getDatabaseConnection();
+
+    $basket = extendBasket($pdo, retrieveBasketFromSession());
+    if (!$basket['is_valid']) {
+        header('Location: ./basket.php');
+        exit();
+    }
+}
