@@ -10,6 +10,7 @@ Processus de commande
 
 Ajout des templates :
 - `public/delivery.php`: formulaire de livraison
+- `public/confirmation.php`: page de confirmation de traitement de commande
 
 
 ## Validation du panier avant la livraison
