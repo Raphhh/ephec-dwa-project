@@ -49,8 +49,39 @@ function updateRemote(productId, quantity) {
     })
     .then(response => {
         console.log('panier mis à jour', response.data)
+        updateBasketItemDisplay(
+            findBasketItemByProductId(response.data.basket.items, productId)
+        )
+        updateBasketTotalDisplay(response.data.basket.total)
     })
     .catch(error => {
         console.error(error)
     });
+}
+
+function updateBasketItemDisplay(item) {
+    console.log('item update', item)
+    let rowElement = document.getElementById('item-' + item.product.id)
+    rowElement.querySelector('.item-total-htva').innerText = item.total_htva
+}
+
+function updateBasketTotalDisplay(total) {
+    console.log('total update', total)
+    document.getElementById('basket-total-count').innerText = total.count
+    document.getElementById('basket-total-htva').innerText = total.htva
+    document.getElementById('basket-total-tvac').innerText = total.tvac
+}
+
+function findBasketItemByProductId(items, productId) {
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].product.id == productId) {
+            return items[i]
+        }
+    }
+    return {
+        product: {
+            id: productId
+        },
+        total_htva: '0 €'
+    }
 }
