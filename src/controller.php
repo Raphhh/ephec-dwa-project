@@ -116,3 +116,8 @@ function manageDelivery()
         'is_post' => $isPost,
     ];
 }
+
+function manageConfirmation(): int
+{
+    return filter_var($_GET['order'] ?? 0, FILTER_VALIDATE_INT);
+}
