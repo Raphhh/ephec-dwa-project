@@ -17,9 +17,57 @@ function retrieveProductById(PDO $pdo, $id): array
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-function retrieveBuyableProducts(PDO $pdo): array
+function retrieveBuyableProducts(PDO $pdo, array $categoryIds = [], string $order = ''): array
 {
-    $stmt = $pdo->prepare('SELECT * FROM products WHERE is_available = 1 ORDER BY display_priority');
+    $categoryClause = '';
+    $categoryParams = [];
+
+    if ($categoryIds) {
+
+        foreach ($categoryIds as $index => $categoryId) {
+            $categoryParams[':cat' . $index] = $categoryId;
+        }
+
+        $categoryClause = 'AND id IN (
+            SELECT DISTINCT product_id
+            FROM product_category
+            WHERE category_id IN (' . implode(',', array_keys($categoryParams)) . ')
+        )';
+
+    }
+
+    $orderClause = 'display_priority ASC';
+    if ($order === 'price_asc') {
+        $orderClause = 'price_htva ASC, ' . $orderClause;
+    } elseif ($order === 'price_desc') {
+        $orderClause = 'price_htva DESC, ' . $orderClause;
+    }
+
+    $query = "SELECT *
+                FROM products
+                WHERE is_available = 1
+                $categoryClause
+                ORDER BY $orderClause";
+    
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($categoryParams);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function retrieveEffectiveCategories(PDO $pdo): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT * 
+            FROM categories 
+            WHERE id IN (
+                SELECT 
+                    DISTINCT category_id 
+                    FROM product_category
+                    JOIN products ON product_category.product_id = products.id
+                    WHERE products.is_available = 1
+            )
+            ORDER BY categories.name'
+    );
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

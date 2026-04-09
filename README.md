@@ -30,6 +30,7 @@ define('DB_PWD', '');
  - [Sprint 0: Modélisation de la base de données](docs/sprint-0.md)
  - [Sprint 1: Pages produits statiques](docs/sprint-1.md)
  - [Sprint 2: Pages produits dynamiques](docs/sprint-2.md)
+ - [Sprint 3: Filtres des produits](docs/sprint-3.md)
 
 ## Schéma des données
 
