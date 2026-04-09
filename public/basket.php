@@ -102,6 +102,14 @@ include __DIR__ . ' /../templates/header.php';
 
         </table>
 
+        <form action="delivery.php" method="post">
+            <div class="basket-actions">
+                <button type="submit" class="btn-primary" <?php if (!$basket['is_valid']) { ?>disabled<?php } ?>>
+                    Passer commande
+                </button>
+            </div>
+        </form>
+
     <?php } else { ?>
         <p class="basket-notification">Votre panier est actuellement vide.</p>
     <?php } ?>

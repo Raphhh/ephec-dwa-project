@@ -178,6 +178,17 @@ main.container {
     transform: scale(0.97);
 }
 
+.btn-primary[disabled] {
+    cursor: not-allowed;
+    transition: none;
+    color: var(--color-text-light);
+    background-color: var(--color-text-muted);
+}
+
+.btn-primary[disabled]:active {
+    transform: none;
+}
+
 .btn-neutral {
     display: inline-block;
     line-height: normal;
@@ -219,6 +230,10 @@ main.container {
     padding: 1.5rem 0;
     text-align: center;
     font-size: 0.9rem;
+}
+
+.message-error {
+    color: var(--color-danger);
 }
 
 
