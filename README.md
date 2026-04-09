@@ -31,6 +31,7 @@ define('DB_PWD', '');
  - [Sprint 1: Pages produits statiques](docs/sprint-1.md)
  - [Sprint 2: Pages produits dynamiques](docs/sprint-2.md)
  - [Sprint 3: Filtres des produits](docs/sprint-3.md)
+ - [Sprint 4: Panier statique](docs/sprint-4.md)
 
 ## Schéma des données
 
