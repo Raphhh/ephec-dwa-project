@@ -51,3 +51,12 @@
     margin-top: 2rem;
     text-align: right;
 }
+
+.basket-notification {
+    text-align: center;
+    font-size: larger;
+}
+
+.unvalid-product {
+    color: var(--color-danger);
+}
