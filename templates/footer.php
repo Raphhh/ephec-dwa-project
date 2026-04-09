@@ -6,5 +6,11 @@
     </div>
 </footer>
 
+<?php if (isset($jsScriptPathList)) { ?>
+    <?php foreach ($jsScriptPathList as $jsScriptPath) { ?>
+        <script src="<?php echo $jsScriptPath; ?>"></script>
+    <?php } ?>
+<?php } ?>
+
 </body>
 </html>
