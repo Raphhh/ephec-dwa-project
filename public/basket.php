@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../src/controller.php';
+$basket = retrieveCurrentBasket();
+
 $title = 'Panier - Rock Station';
 $description = 'Résumé de votre commande chez Rock Station.';
 $specificCssFilePath = 'resources/css/basket.css';
@@ -11,6 +14,8 @@ include __DIR__ . ' /../templates/header.php';
     </section>
 
     <section class="basket">
+
+    <?php if (!empty($basket['items'])) { ?>
 
         <table class="basket-table">
 
@@ -25,61 +30,38 @@ include __DIR__ . ' /../templates/header.php';
 
             <tbody>
 
+            <?php foreach ($basket['items'] as $item) { ?>
+                <?php $product = $item['product']; ?>
                 <tr>
+                    <!-- Produit <?php echo $product['id']; ?> -->
                     <td>
-                        <a href="product.php">
-                            <img src="resources/products/gibson-les-paul-standard-60s-honey-amber_1_GIT0062796-002.webp"
-                                    alt="Gibson Les Paul Standard 60s"
-                                    class="basket-img">
-                            Gibson Les Paul Standard 60s
+                        <a href="<?php echo $product['url']; ?>">
+                            <img src="<?php echo $product['image_url']; ?>"
+                                 alt="<?php echo $product['short_description']; ?>"
+                                 title="<?php echo $product['name']; ?>"
+                                 class="basket-img">
+                            <?php echo $product['name']; ?>
+                            <?php if (!$item['validity']['is_valid']) { ?>
+                                    <br>
+                                    <span class="unvalid-product">
+                                        <?php if (!$item['validity']['is_available_product']) { ?>
+                                                Le produit n'est plus disponible à la vente.
+                                        <?php } elseif (!$item['validity']['is_available_stock']) { ?>
+                                                Nos stocks actuellement disponibles se limitent à
+                                                <?php echo $product['stock']; ?>
+                                                élément(s).
+                                        <?php } else {  ?>
+                                                Une erreur s'est introduite dans votre panier.
+                                        <?php }  ?>
+                                    </span>
+                            <?php } ?>
                         </a>
                     </td>
-                    <td>2 000 €</td>
-                    <td>1</td>
-                    <td>2 000 €</td>
+                    <td><?php echo $product['price_htva']; ?></td>
+                    <td><?php echo $item['quantity'] ?></td>
+                    <td><?php echo $item['total_htva']; ?></td>
                 </tr>
-
-                <tr>
-                    <td>
-                        <a href="product.php">
-                            <img src="resources/products/fender-american-ultra-ii-stratocaster-eb-texas-tea_1_GIT0061889-003.webp"
-                                    alt="Fender Stratocaster"
-                                    class="basket-img">
-                            Fender Stratocaster
-                        </a>
-                    </td>
-                    <td>1 487 €</td>
-                    <td>2</td>
-                    <td>2 974 €</td>
-                </tr>
-
-                <tr>
-                    <td>
-                        <a href="product.php">
-                            <img src="resources/products/fender-65-twin-reverb-combo-_1_GIT0000081-000.webp"
-                                    alt="Fender Twin Reverb"
-                                    class="basket-img">
-                            Fender Twin Reverb
-                        </a>    
-                    </td>
-                    <td>1 941 €</td>
-                    <td>1</td>
-                    <td>1 941 €</td>
-                </tr>
-
-                <tr>
-                    <td>
-                        <a href="product.php">
-                            <img src="resources/products/vox-ac30-c2-combo-_1_GIT0018374-000.webp"
-                                    alt="Vox AC30"
-                                    class="basket-img">
-                            Vox AC30
-                        </a>
-                    </td>
-                    <td>1 115 €</td>
-                    <td>1</td>
-                    <td>1 115 €</td>
-                </tr>
+            <?php } ?>
 
             </tbody>
 
@@ -87,26 +69,29 @@ include __DIR__ . ' /../templates/header.php';
 
                 <tr>
                     <th colspan="3">Nombre total d’articles</th>
-                    <td>5</td>
+                    <td><?php echo $basket['total']['count']; ?></td>
                 </tr>
 
                 <tr>
                     <th colspan="3">Total HTVA</th>
-                    <td>8 030 €</td>
+                    <td><?php echo $basket['total']['htva']; ?></td>
                 </tr>
 
                 <tr>
-                    <th colspan="3">Total TVAC (21%)</th>
-                    <td>9 716,30 €</td>
+                    <th colspan="3">Total TVAC (<?php echo fomatTva();?>)</th>
+                    <td><?php echo $basket['total']['tvac']; ?></td>
                 </tr>
 
             </tfoot>
 
         </table>
 
+    <?php } else { ?>
+        <p class="basket-notification">Votre panier est actuellement vide.</p>
+    <?php } ?>
 
     </section>
-    
+
 <?php
 include __DIR__ . ' /../templates/footer.php';
 ?>
