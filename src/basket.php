@@ -19,7 +19,8 @@ function extendBasket(PDO $pdo, array $basket): array
             'count' => 0,
             'htva' => 0,
             'tvac' => 0,
-        ]
+        ],
+        'is_valid' => false,
     ];
 
     foreach ($basket as $productId => $quantity) {
@@ -45,6 +46,8 @@ function extendBasket(PDO $pdo, array $basket): array
         $order['total']['htva'] += $htva;
         $order['total']['tvac'] += addTva($htva);
     }
+
+    $order['is_valid'] = validateFullBasket($order);
 
     return $order;
 }
@@ -72,4 +75,14 @@ function generateProductOrderValidation(bool $isAvailableProduct, bool $isAvaila
         }
     }
     return $result;
+}
+
+function validateFullBasket(array $fullBasket): bool
+{
+    foreach ($fullBasket['items'] as $item) {
+        if (!$item['validity']['is_valid']) {
+            return false;
+        }
+    }
+    return true;
 }
