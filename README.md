@@ -25,6 +25,10 @@ define('DB_USER', 'root');
 define('DB_PWD', '');
 ```
 
+## Concepts généraux
+
+ - [Résumé des concepts généraux](docs/general.md)
+
 ## Changements
 
  - [Sprint 0: Modélisation de la base de données](docs/sprint-0.md)
